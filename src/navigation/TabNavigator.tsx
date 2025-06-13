@@ -5,6 +5,7 @@ import Feed from '../components/Feed/Feed';
 import Leaderboard from '../components/Leaderboard/Leaderboard';
 import Profile from '../components/Profile/Profile';
 import PostDetail from '../components/Profile/PostDetail';
+import EditProfile from '../components/Profile/EditProfile';
 
 const Tab = createBottomTabNavigator();
 const ProfileStackNav = createNativeStackNavigator();
@@ -14,6 +15,7 @@ function ProfileStack() {
     <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStackNav.Screen name="ProfileMain" component={Profile} />
       <ProfileStackNav.Screen name="PostDetail" component={PostDetail} />
+      <ProfileStackNav.Screen name="EditProfile" component={EditProfile} />
     </ProfileStackNav.Navigator>
   );
 }
