@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Dimensions } from 'react-native';
-import { Avatar } from 'react-native-paper';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Dimensions, TouchableOpacity, Image, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getMe } from '../../api/user';
 import { useDispatch } from 'react-redux';
@@ -9,7 +8,9 @@ import { logout } from '../../redux/authSlice';
 import { getMyPosts } from '../../api/post';
 import PostsGrid from './PostsGrid';
 // import LinearGradient from 'react-native-linear-gradient'; // Uncomment if you have this package
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import ProfileImagePickerModal from './ProfileImagePickerModal';
+import { uploadProfileImage } from '../../api/user';
 
 const { width } = Dimensions.get('window');
 
@@ -19,42 +20,47 @@ export default function Profile() {
   const [error, setError] = useState('');
   const [posts, setPosts] = useState<any[]>([]);
   const dispatch = useDispatch();
+  const navigation = useNavigation<any>();
+  const [showImageModal, setShowImageModal] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    let isActive = true;
+    try {
+      setLoading(true);
+      const data = await getMe();
+      if (isActive) setUser(data);
+      const myPosts = await getMyPosts(1, 10);
+      if (isActive) setPosts(myPosts);
+    } catch (e: any) {
+      setError('Failed to load profile');
+      if (e?.response?.status === 401) {
+        await AsyncStorage.removeItem('auth_token');
+        dispatch(logout());
+      }
+    } finally {
+      if (isActive) setLoading(false);
+    }
+  
+    return () => {
+      isActive = false;
+    };
+  }, [dispatch]);
 
   useFocusEffect(
     useCallback(() => {
-      let isActive = true;
-
-      const fetchData = async () => {
-        try {
-          setLoading(true);
-          const data = await getMe();
-          if (isActive){
-            setUser(data);
-          }
-          const myPosts = await getMyPosts(1, 10);
-          if (isActive){
-            setPosts(myPosts);
-          }
-        } catch (e: any) {
-          setError('Failed to load profile');
-          if (e?.response?.status === 401) {
-            await AsyncStorage.removeItem('auth_token');
-            dispatch(logout());
-          }
-        } finally {
-          if (isActive){
-            setLoading(false);
-          }
-        }
-      };
-
       fetchData();
-
-      return () => {
-        isActive = false;
-      };
-    }, [dispatch])
+    }, [fetchData])
   );
+
+  const handleImagePicked = async (image: { uri: string; mime: string; name: string }) => {
+    try {
+      await uploadProfileImage(image);
+      fetchData();
+      Alert.alert('Profile image updated successfully.');
+    } catch (e) {
+      Alert.alert('Error', 'Failed to upload profile image.');
+    }
+  };
 
   if (loading) {
     return <View style={styles.center}><ActivityIndicator size="large" color="#00f2ff" /></View>;
@@ -80,23 +86,34 @@ export default function Profile() {
       <View style={styles.headerWrap}>
         {/* <LinearGradient colors={["#0a0a0a", "#1a1a2e"]} style={styles.headerGradient}> */}
         <View style={styles.headerGradient}>
-          <View style={styles.logoutButtonWrap}>
-            <Icon
-              name="logout"
-              size={26}
-              color="#00f2ff"
-              onPress={async () => {
-                await AsyncStorage.removeItem('auth_token');
-                dispatch(logout());
-              }}
-            />
+          <View style={styles.headerButtonsRow}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => navigation.navigate('EditProfile', { user })}
+            >
+              <Icon name="pencil" size={20} color="#00f2ff" />
+              <Text style={styles.editButtonText}>Edit</Text>
+            </TouchableOpacity>
+            <View style={{ flex: 1 }} />
+            <View style={styles.logoutButtonWrap}>
+              <Icon
+                name="logout"
+                size={26}
+                color="#00f2ff"
+                onPress={async () => {
+                  await AsyncStorage.removeItem('auth_token');
+                  dispatch(logout());
+                }}
+              />
+            </View>
           </View>
-          <View style={styles.avatarWrap}>
-            <Avatar.Image
-              source={{ uri: user.profileImage }}
-              size={110}
-              style={styles.avatar}
-            />
+          <View style={styles.avatarContainer}>
+            {user?.profileImage && (
+              <Image source={{ uri: user.profileImage }} style={styles.avatar} />
+            )}
+            <TouchableOpacity style={styles.editAvatarBtn} onPress={() => setShowImageModal(true)}>
+              <Icon name="camera" size={22} color="#fff" />
+            </TouchableOpacity>
           </View>
           <Text style={styles.username}>{user.firstName} {user.lastName}</Text>
           <Text style={styles.bio}>@{user.username}</Text>
@@ -162,6 +179,12 @@ export default function Profile() {
 
       {/* Posts Grid */}
       <PostsGrid posts={posts} user={user} />
+
+      <ProfileImagePickerModal
+        visible={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        onImagePicked={handleImagePicked}
+      />
     </ScrollView>
   );
 }
@@ -182,12 +205,11 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     paddingBottom: 0,
     backgroundColor: 'transparent',
-    marginTop: 32,
   },
   headerGradient: {
     width: '100%',
     alignItems: 'center',
-    paddingTop: 56,
+    paddingTop: 46,
     paddingBottom: 18,
     backgroundColor: '#181828',
     borderBottomLeftRadius: 32,
@@ -196,6 +218,24 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
+  },
+  headerButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 18,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#222',
+    borderRadius: 16,
+  },
+  editButtonText: {
+    color: '#00f2ff',
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
   logoutButtonWrap: {
     position: 'absolute',
@@ -210,20 +250,27 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
   },
-  avatarWrap: {
-    borderWidth: 4,
-    borderColor: '#00f2ff',
-    borderRadius: 70,
-    padding: 4,
-    marginBottom: 8,
-    backgroundColor: '#181828',
-    shadowColor: '#00f2ff',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
+  avatarContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
   avatar: {
-    backgroundColor: '#222',
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    borderWidth: 3,
+    borderColor: '#00f2ff',
+  },
+  editAvatarBtn: {
+    position: 'absolute',
+    bottom: 0,
+    right: 110 / 2 - 22,
+    backgroundColor: '#00f2ff',
+    borderRadius: 20,
+    padding: 6,
+    borderWidth: 2,
+    borderColor: '#101018',
   },
   username: {
     fontSize: 25,
@@ -340,5 +387,26 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10,
     shadowRadius: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#181828',
+    borderRadius: 16,
+    padding: 24,
+    width: 320,
+    alignItems: 'center',
+  },
+  modalButton: {
+    backgroundColor: '#00f2ff',
+    borderRadius: 10,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 12,
+    width: 180,
   },
 });

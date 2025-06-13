@@ -52,5 +52,11 @@
 	<array>
 		<string>MaterialCommunityIcons.ttf</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to upload a profile image.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to take photos.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We need access to save your cropped image.</string>
 </dict>
 </plist>
