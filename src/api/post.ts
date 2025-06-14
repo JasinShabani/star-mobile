@@ -20,3 +20,23 @@ export const starPost = async (postId: string) => {
 export const unstarPost = async (postId: string) => {
   await api.delete(`/post/${postId}/star`);
 };
+
+export const createPost = async (caption: string, categoryId: string) => {
+  const res = await api.post('/post', { caption, categoryId });
+  return res.data.post;
+};
+
+export const uploadPostMedia = async (postId: string, files: { uri: string; type: string; name: string }[]) => {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append('file', {
+      uri: file.uri,
+      type: file.type,
+      name: file.name,
+    } as any);
+  });
+  const res = await api.post(`/post/${postId}/upload-media`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data.medias;
+};
