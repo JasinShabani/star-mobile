@@ -146,21 +146,21 @@ export default function Profile() {
               <Icon name="city" size={36} color="#00f2ff" />
               <Text style={styles.trophyLabel}>CITY</Text>
               <Text style={styles.trophyRank}>
-                {getRank('city')?.count ?? '-'} x{getMedal(getRank('city')?.rank)}
+                {getRank('city') && getRank('city')?.rank ? `${getRank('city')?.count} x ${getMedal(getRank('city')?.rank)}` : ''}
               </Text>
             </View>
             <View style={styles.trophyBox}>
               <Icon name="flag" size={36} color="#00f2ff" />
               <Text style={styles.trophyLabel}>COUNTRY</Text>
               <Text style={styles.trophyRank}>
-               {getRank('country')?.count ?? '-'} x{getMedal(getRank('country')?.rank)}
+                {getRank('country') && getRank('country')?.rank ? `${getRank('country')?.count} x ${getMedal(getRank('country')?.rank)}` : ''}
               </Text>
             </View>
             <View style={styles.trophyBox}>
               <Icon name="earth" size={36} color="#00f2ff" />
               <Text style={styles.trophyLabel}>GLOBAL</Text>
               <Text style={styles.trophyRank}>
-              {getRank('global')?.count ?? '-'} x{getMedal(getRank('global')?.rank)}
+                {getRank('global') && getRank('global')?.rank ? `${getRank('global')?.count} x ${getMedal(getRank('global')?.rank)}` : ''}
               </Text>
             </View>
           </View>
