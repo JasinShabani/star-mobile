@@ -29,3 +29,13 @@ export const updateProfile = async (data: { firstName: string; lastName: string;
   const response = await api.put('/user/update-profile', data);
   return response.data;
 };
+
+export const searchUsers = async (q: string, page = 1, limit = 20) => {
+  const res = await api.get('/user/search', { params: { q, page, limit } });
+  return res.data.users;
+};
+
+export const getUserByUsername = async (username: string) => {
+  const res = await api.get(`/user/${username}`);
+  return res.data.user;
+};

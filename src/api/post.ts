@@ -40,3 +40,8 @@ export const uploadPostMedia = async (postId: string, files: { uri: string; type
   });
   return res.data.medias;
 };
+
+export const getPostsByUsername = async (username: string, page = 1, pageSize = 20) => {
+  const res = await api.get(`/post/user/${username}`, { params: { page, pageSize } });
+  return res.data.posts;
+};

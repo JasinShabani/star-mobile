@@ -4,7 +4,7 @@ import type { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axio
 
 const api = axios.create({
   // baseURL: 'http://localhost:8080/api',
-  baseURL: 'http://192.168.68.59:8080/api',
+  baseURL: 'http://192.168.68.56:8080/api',
 });
 
 api.interceptors.request.use(

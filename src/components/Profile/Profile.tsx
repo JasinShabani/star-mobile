@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   headerGradient: {
     width: '100%',
     alignItems: 'center',
-    paddingTop: 46,
+    paddingTop: 36,
     paddingBottom: 18,
     backgroundColor: '#181828',
     borderBottomLeftRadius: 32,
