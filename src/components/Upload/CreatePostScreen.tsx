@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: 'bold',
     color: '#fff',
-    marginTop: 38,
+    marginTop: 34,
     marginBottom: 18,
     textAlign: 'center',
     letterSpacing: 1.1,
