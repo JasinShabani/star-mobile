@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, Image, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert, Image, ScrollView, Dimensions, Modal } from 'react-native';
+import Video from 'react-native-video';
 import DropDownPicker from 'react-native-dropdown-picker';
 import ImagePicker from 'react-native-image-crop-picker';
 import { createPost, uploadPostMedia } from '../../api/post';
@@ -11,19 +12,32 @@ import { useNavigation } from '@react-navigation/native';
 const { width } = Dimensions.get('window');
 
 function MediaReorderList({ media, setMedia, onEdit }: any) {
-  const renderItem = ({ item, index = 0, drag, isActive }: any) => (
-    <TouchableOpacity
-      style={[styles.mediaItem, isActive && { opacity: 0.7 }]}
-      onLongPress={drag}
-      onPress={() => onEdit(media.indexOf(item))}
-      activeOpacity={0.8}
-    >
-      <Image source={{ uri: item.path }} style={styles.mediaImage} />
-      <View style={styles.mediaOrderBadge}>
-        <Text style={styles.mediaOrderText}>{media.indexOf(item) + 1}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderItem = ({ item, index = 0, drag, isActive }: any) => {
+    const isVideo = item?.mime?.startsWith('video');
+    return (
+      <TouchableOpacity
+        style={[styles.mediaItem, isActive && { opacity: 0.7 }]}
+        onLongPress={drag}
+        onPress={() => onEdit(media.indexOf(item))}
+        activeOpacity={0.8}
+      >
+        {isVideo ? (
+          <Video
+            source={{ uri: item.path }}
+            style={styles.mediaImage}
+            paused={true}
+            resizeMode="cover"
+            muted
+          />
+        ) : (
+          <Image source={{ uri: item.path }} style={styles.mediaImage} />
+        )}
+        <View style={styles.mediaOrderBadge}>
+          <Text style={styles.mediaOrderText}>{media.indexOf(item) + 1}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
   return (
     <DraggableFlatList
       data={media}
@@ -47,6 +61,7 @@ export default function CreatePostScreen() {
   const [openCategory, setOpenCategory] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -68,6 +83,8 @@ export default function CreatePostScreen() {
         cropping: false,
       });
       setMedia(files);
+      const isVideo = files[0]?.mime?.startsWith('video');
+      setAspect(isVideo ? '9:16' : '1:1');
     } catch (e) {
       if (e.code !== 'E_PICKER_CANCELLED') Alert.alert('Error', 'Failed to pick media');
     }
@@ -80,13 +97,20 @@ export default function CreatePostScreen() {
         Alert.alert('Error', 'Invalid file data');
         return;
       }
+
+      if (file?.mime?.startsWith('video')) {
+        setSelectedVideo(file.path);
+        return;
+      }
+
       const cropped = await ImagePicker.openCropper({
         path: file.path,
         width: aspect === '9:16' ? 720 : 1080,
         height: aspect === '9:16' ? 1280 : 1080,
         cropperToolbarTitle: 'Adjust Media',
-        mediaType: file?.mime?.startsWith('video') ? 'video' : 'photo',
+        mediaType: 'photo',
       });
+
       setMedia((prev) => prev.map((m, i) => (i === index ? cropped : m)));
     } catch (e) {
       if (e.code !== 'E_PICKER_CANCELLED') Alert.alert('Error', 'Failed to crop media');
@@ -127,30 +151,24 @@ export default function CreatePostScreen() {
       {media.length > 0 && (
         <>
           <MediaReorderList media={media} setMedia={setMedia} onEdit={editMedia} />
-          <View style={styles.aspectRow}>
-            <TouchableOpacity
-              style={[styles.aspectBtn, aspect === '9:16' && styles.aspectBtnActive]}
-              onPress={() => setAspect('9:16')}
-              disabled={loading}
-            >
-              <View style={styles.aspectPreview}>
-                <View style={[styles.aspectFrame, { aspectRatio: 9 / 16 }]} />
-              </View>
-              <Text style={[styles.aspectText, aspect === '9:16' && styles.aspectTextActive]}>9:16</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.aspectBtn, aspect === '1:1' && styles.aspectBtnActive]}
-              onPress={() => setAspect('1:1')}
-              disabled={loading}
-            >
-              <View style={styles.aspectPreview}>
-                <View style={[styles.aspectFrame, { aspectRatio: 1 }]} />
-              </View>
-              <Text style={[styles.aspectText, aspect === '1:1' && styles.aspectTextActive]}>1:1</Text>
-            </TouchableOpacity>
-          </View>
         </>
       )}
+      <Modal visible={!!selectedVideo} animationType="fade" transparent={true}>
+        <View style={{ flex: 1, backgroundColor: '#000a', justifyContent: 'center', alignItems: 'center' }}>
+          <TouchableOpacity
+            onPress={() => setSelectedVideo(null)}
+            style={{ position: 'absolute', top: 40, right: 20, zIndex: 10 }}
+          >
+            <Icon name="close" size={30} color="#fff" />
+          </TouchableOpacity>
+          <Video
+            source={{ uri: selectedVideo! }}
+            style={{ width: width * 0.9, height: (width * 0.9) * 16 / 9, borderRadius: 12 }}
+            controls
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
       <Text style={styles.label}>Caption</Text>
       <TextInput
         style={styles.input}
@@ -171,7 +189,7 @@ export default function CreatePostScreen() {
         setItems={setCategories}
         style={styles.dropdown}
         dropDownContainerStyle={styles.dropdownContainer}
-        textStyle={{ color: '#fff' }}
+        textStyle={{ color: '#fff', fontSize: 16 }}
         arrowIconStyle={{ tintColor: '#fff' }}
         tickIconStyle={{ tintColor: '#fff' }}
         disabled={loading}
@@ -271,6 +289,7 @@ const styles = StyleSheet.create({
     borderColor: '#444',
     borderRadius: 12,
     marginBottom: 16,
+    fontSize: 18,
   },
   dropdownContainer: {
     backgroundColor: '#23233a',
@@ -281,6 +300,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
+    fontSize: 18,
   },
   shareButton: {
     backgroundColor: '#00f2ff',

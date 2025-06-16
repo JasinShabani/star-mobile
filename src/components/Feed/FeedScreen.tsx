@@ -1,11 +1,14 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, Image, ScrollView, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, Image, ScrollView, Animated, Easing, DeviceEventEmitter } from 'react-native';
+import Video, { VideoRef } from 'react-native-video';
 import { getCategories } from '../../api/category';
 import { getFeedFollowing, getFeedForYou } from '../../api/feed';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { TapGestureHandler } from 'react-native-gesture-handler';
+import { TapGestureHandler, PanGestureHandler, State } from 'react-native-gesture-handler';
 import { starPost, unstarPost } from '../../api/post';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import UserProfileScreen from '../Profile/UserProfileScreen';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -48,9 +51,30 @@ function FeedTabBar({ selected, onSelect }: any) {
   );
 }
 
-function PostCard({ post, onStar }: any) {
+interface Post {
+  id: string;
+  user: {
+    username: string;
+    profileImage: string;
+  };
+  media: Array<{
+    id: string;
+    url: string;
+    type: 'image' | 'video';
+    order: number;
+  }>;
+  hasStarred: boolean;
+  starCount: number;
+  caption: string;
+}
+
+function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar: (post: Post) => void; onUserPress: (username: string) => void; isFocused: boolean }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [starAnimating, setStarAnimating] = useState(false);
+  // Video play state for navigation focus
+  const [shouldPlayVideo, setShouldPlayVideo] = useState(true);
+  const [forcePaused, setForcePaused] = useState(false);
+  const videoRef = useRef<VideoRef>(null);
   const animation = useRef(new Animated.Value(0)).current;
 
   const triggerStarAnimation = () => {
@@ -71,6 +95,39 @@ function PostCard({ post, onStar }: any) {
     }
   };
 
+  // Manage video play state on navigation focus
+  useFocusEffect(
+    useCallback(() => {
+      setShouldPlayVideo(true);
+      return () => setShouldPlayVideo(false);
+    }, [])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      // When Feed is focused, do nothing special
+      return () => {
+        // When Feed loses focus (tab change), pause and reset video
+        setForcePaused(true);
+        if (videoRef.current) {
+          videoRef.current.seek(0);
+        }
+      };
+    }, [])
+  );
+
+  // Only play video if this post is focused and the current media is a video and not forcePaused and shouldPlayVideo
+  const currentMedia = post.media?.[currentIndex];
+  // videoShouldPlay is kept for logic, but we want to use paused={!shouldPlayVideo || idx !== currentIndex}
+  const videoShouldPlay = shouldPlayVideo && isFocused && currentMedia?.type === 'video' && !forcePaused;
+
+  useEffect(() => {
+    // If not focused, reset video to start
+    if (!isFocused && videoRef.current) {
+      videoRef.current.seek(0);
+    }
+  }, [isFocused]);
+
   const starScale = animation.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [0.2, 1.3, 1],
@@ -84,11 +141,15 @@ function PostCard({ post, onStar }: any) {
     <View style={styles.postCard}>
       {/* User Row */}
       <View style={styles.postHeader}>
-        <Image source={{ uri: post.user.profileImage }} style={styles.avatar} />
-        <Text style={styles.username}>{post.user.username}</Text>
+        <TouchableOpacity onPress={() => onUserPress(post.user.username)}>
+          <Image source={{ uri: post.user.profileImage }} style={styles.avatar} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onUserPress(post.user.username)}>
+          <Text style={styles.username}>{post.user.username}</Text>
+        </TouchableOpacity>
         <View style={{ flex: 1 }} />
       </View>
-      {/* Image Slider with Double Tap */}
+      {/* Image/Video Slider with Double Tap */}
       <TapGestureHandler numberOfTaps={2} onActivated={handleDoubleTap}>
         <View>
           <ScrollView
@@ -103,13 +164,39 @@ function PostCard({ post, onStar }: any) {
             }}
             scrollEventThrottle={16}
           >
-            {post.media?.map((media: any) => (
-              <Image
-                key={media.id}
-                source={{ uri: media.url }}
-                style={styles.postImage}
-              />
-            ))}
+            {post.media?.map((media: any, idx: number) => {
+              // Only play video if:
+              // - this screen is focused
+              // - this post is focused (isFocused)
+              // - this media is the current index
+              // - shouldPlayVideo is true
+              // - not forcePaused
+              // Use useIsFocused() directly for navigation focus
+              const { useIsFocused } = require('@react-navigation/native');
+              const screenIsFocused = useIsFocused ? useIsFocused() : true;
+              const playThisVideo = screenIsFocused && isFocused && shouldPlayVideo && idx === currentIndex && !forcePaused;
+              return media.type === 'video' ? (
+                <Video
+                  key={media.id}
+                  ref={idx === currentIndex ? videoRef : undefined}
+                  source={{ uri: media.url }}
+                  style={styles.postImage}
+                  resizeMode="cover"
+                  repeat
+                  paused={!screenIsFocused || !isFocused || idx !== currentIndex}
+                  muted={false}
+                  playInBackground={false}
+                  playWhenInactive={false}
+                  controls
+                />
+              ) : (
+                <Image
+                  key={media.id}
+                  source={{ uri: media.url }}
+                  style={styles.postImage}
+                />
+              );
+            })}
           </ScrollView>
           {/* Star Animation */}
           {starAnimating && (
@@ -129,28 +216,37 @@ function PostCard({ post, onStar }: any) {
         </View>
       </TapGestureHandler>
       {/* Pagination Dots */}
-      <View style={styles.dotsRow}>
-        {post.media?.map((_: any, idx: number) => (
-          <View
+      {post.media?.length > 1 && (
+        <View style={styles.dotsRow}>
+        {post.media.map((_: any, idx: number) => (
+            <View
             key={idx}
             style={[styles.dot, currentIndex === idx && styles.dotActive]}
-          />
+            />
         ))}
-      </View>
+        </View>
+      )}
       {/* Star Row */}
       <View style={styles.starRow}>
-        <TouchableOpacity
-          style={styles.starButton}
-          onPress={() => onStar(post)}
-          activeOpacity={0.7}
+        <View
+          style={[
+            styles.starButton,
+            post.hasStarred && { backgroundColor: '#FFD70022' }
+          ]}
         >
-          {post.hasStarred ? (
-            <Text style={styles.bigStar}>🌟</Text>
-          ) : (
-            <Icon name="star-outline" size={32} color="#FFD700" />
-          )}
-          <Text style={styles.starCount}>{post.starCount}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => onStar(post)}
+            activeOpacity={0.7}
+          >
+            {post.hasStarred ? (
+              <Text style={styles.bigStar}>🌟</Text>
+            ) : (
+              <Icon name="star-outline" size={32} color="#FFD700" />
+            )}
+            <Text style={styles.starCount}>{post.starCount}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       {/* Caption */}
       <View style={styles.captionWrap}>
@@ -171,6 +267,13 @@ export default function FeedScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [hasMore, setHasMore] = useState(true);
+  const [selectedUsername, setSelectedUsername] = useState<string | null>(null);
+  // Track which posts are visible (focused) for video play/mute logic
+  const [visiblePostIds, setVisiblePostIds] = useState<string[]>([]);
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    setVisiblePostIds(viewableItems.map((item: any) => item.item.id));
+  }).current;
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
 
   useEffect(() => {
     (async () => {
@@ -237,7 +340,7 @@ export default function FeedScreen() {
     fetchPosts(true, 1);
   };
 
-  const handleStar = async (post: any) => {
+  const handleStar = async (post: Post) => {
     try {
       if (post.hasStarred) {
         await unstarPost(post.id);
@@ -245,9 +348,37 @@ export default function FeedScreen() {
         await starPost(post.id);
       }
       // Update post in state
-      setPosts(prev => prev.map(p => p.id === post.id ? { ...p, hasStarred: !post.hasStarred, starCount: post.hasStarred ? p.starCount - 1 : p.starCount + 1 } : p));
+      setPosts((prev: Post[]) => prev.map((p: Post) => 
+        p.id === post.id 
+          ? { ...p, hasStarred: !post.hasStarred, starCount: post.hasStarred ? p.starCount - 1 : p.starCount + 1 } 
+          : p
+      ));
     } catch {}
   };
+
+  const handleUserPress = (username: string) => {
+    setSelectedUsername(username);
+  };
+
+  const handlePanGesture = ({ nativeEvent }: any) => {
+    if (nativeEvent.translationX > 60 && nativeEvent.state === State.END) {
+      setSelectedUsername(null);
+    }
+  };
+
+  if (selectedUsername) {
+    return (
+      <PanGestureHandler onGestureEvent={handlePanGesture} onHandlerStateChange={handlePanGesture}>
+        <View style={{ flex: 1, backgroundColor: '#101018' }}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => setSelectedUsername(null)}>
+            <Icon name="arrow-left" size={26} color="#00f2ff" />
+            <Text style={styles.backText}>Back to Feed</Text>
+          </TouchableOpacity>
+          <UserProfileScreen username={selectedUsername} />
+        </View>
+      </PanGestureHandler>
+    );
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -260,7 +391,14 @@ export default function FeedScreen() {
         <FlatList
           data={posts}
           keyExtractor={item => item.id.toString()}
-          renderItem={({ item }) => <PostCard post={item} onStar={handleStar} />}
+          renderItem={({ item, index }) => (
+            <PostCard
+              post={item}
+              onStar={handleStar}
+              onUserPress={handleUserPress}
+              isFocused={visiblePostIds.includes(item.id)}
+            />
+          )}
           style={styles.feedList}
           contentContainerStyle={{ paddingBottom: 80 }}
           onEndReached={handleLoadMore}
@@ -268,7 +406,20 @@ export default function FeedScreen() {
           refreshing={refreshing}
           onRefresh={handleRefresh}
           ListFooterComponent={loadingMore ? <ActivityIndicator color="#00f2ff" /> : null}
+          ListEmptyComponent={
+            !loading ? (
+              <Text style={{ color: '#aaa', textAlign: 'center', marginTop: 50 }}>
+                {tab === 'following'
+                  ? selectedCategory
+                    ? 'No posts in this category yet.'
+                    : "Let's follow any user to see their posts!"
+                  : 'No posts in this category yet.'}
+              </Text>
+            ) : null
+          }
           showsVerticalScrollIndicator={false}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
         />
       </View>
     </GestureHandlerRootView>
@@ -386,7 +537,6 @@ const styles = StyleSheet.create({
   },
   slider: {
     width: '100%',
-    maxHeight: width,
     marginBottom: 8,
   },
   sliderContent: {
@@ -395,6 +545,12 @@ const styles = StyleSheet.create({
   postImage: {
     width: width - 28,
     height: width - 28,
+    borderRadius: 16,
+    backgroundColor: '#222',
+  },
+  videoPost: {
+    width: width - 28,
+    height: 450,
     borderRadius: 16,
     backgroundColor: '#222',
   },
@@ -420,8 +576,9 @@ const styles = StyleSheet.create({
   starRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    marginLeft: 18,
+    justifyContent: 'center',
+    marginTop: 10,
+    marginBottom: 10,
     marginVertical: 6,
   },
   starButton: {
@@ -477,4 +634,19 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
   },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#181828',
+    borderBottomWidth: 1,
+    borderBottomColor: '#23233a',
+    paddingTop: 52,
+  },
+  backText: {
+    color: '#00f2ff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 8,
+  }
 });
