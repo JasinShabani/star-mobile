@@ -5,10 +5,9 @@ export const COUNTRIES = [
 
 export const CITIES: Record<string, string[]> = {
   Macedonia: [
-    'Skopje', 'Bitola', 'Kumanovo', 'Prilep', 'Tetovo', 'Veles', 'Ohrid', 'Gostivar', 'Štip', 'Strumica',
+    'Skopje', 'Ohrid', 'Gostivar', 'Bitola', 'Kumanovo', 'Prilep', 'Tetovo', 'Veles', 'Štip', 'Strumica',
     'Kavadarci', 'Kočani', 'Kičevo', 'Radoviš', 'Negotino', 'Struga', 'Gevgelija', 'Debar', 'Kriva Palanka', 'Sveti Nikole',
-    'Kruševo', 'Resen', 'Delčevo', 'Vinica', 'Berovo', 'Bogdanci', 'Demir Hisar', 'Demir Kapija', 'Kratovo',
-    'Makedonska Kamenica', 'Makedonski Brod', 'Probištip', 'Valandovo',
+    'Probištip', 'Valandovo',
   ],
   Turkey: [
     'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Amasya', 'Ankara', 'Antalya', 'Artvin', 'Aydın', 'Balıkesir',

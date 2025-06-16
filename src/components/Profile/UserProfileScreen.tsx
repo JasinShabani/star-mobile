@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getUserByUsername } from '../../api/user';
+import { getUserByUsername, getMe, followUser, unfollowUser } from '../../api/user';
 import { getPostsByUsername } from '../../api/post';
 import { useRoute } from '@react-navigation/native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
@@ -95,6 +95,10 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [showUnfollowDropdown, setShowUnfollowDropdown] = useState(false);
 
   const fetchUserAndPosts = useCallback(async (reset = false, nextPage = 1) => {
     try {
@@ -122,6 +126,20 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
     fetchUserAndPosts(true, 1);
   }, [username, fetchUserAndPosts]);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const me = await getMe();
+        setCurrentUser(me);
+      } catch {}
+    })();
+  }, []);
+
+  useEffect(() => {
+   if (!user || !currentUser) return;
+   setIsFollowing(!!user.isFollowing);
+  }, [user, currentUser]);
+
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
       setLoadingMore(true);
@@ -141,7 +159,7 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
     return <View style={styles.center}><ActivityIndicator size="large" color="#00f2ff" /></View>;
   }
   if (error) {
-    return <View style={styles.center}><Text style={{ color: 'red' }}>{error}</Text></View>;
+    return <View style={styles.center}><Text style={styles.errorText}>{error}</Text></View>;
   }
   if (!user) return null;
 
@@ -164,6 +182,66 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
             </View>
             <Text style={styles.username}>{user.firstName} {user.lastName}</Text>
             <Text style={styles.bio}>@{user.username}</Text>
+            {currentUser && user.id !== currentUser.id && (
+              <>
+                {!isFollowing ? (
+                  <TouchableOpacity
+                    style={[styles.followBtn, styles.followBtnActive]}
+                    onPress={async () => {
+                      setFollowLoading(true);
+                      try {
+                        await followUser(user.username);
+                        setIsFollowing(true);
+                      } catch {}
+                      setFollowLoading(false);
+                    }}
+                    disabled={followLoading}
+                  >
+                    <Text style={styles.followBtnText}>
+                      <Icon name="account-plus-outline" size={18} color="#101018" /> Follow
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.followingWrapper}>
+                    <TouchableOpacity
+                      style={styles.followBtn}
+                      onPress={() => setShowUnfollowDropdown(prev => !prev)}
+                    >
+                      <Text style={[styles.followBtnText, { color: '#00f2ff' }]}>
+                        <Icon name="check" size={18} color="#00f2ff" /> Following
+                      </Text>
+                    </TouchableOpacity>
+                    {showUnfollowDropdown && (
+                      <View style={styles.unfollowDropdown}>
+                        <TouchableOpacity
+                          onPress={async () => {
+                            setFollowLoading(true);
+                            try {
+                              await unfollowUser(user.username);
+                              setIsFollowing(false);
+                              setShowUnfollowDropdown(false);
+                            } catch {}
+                            setFollowLoading(false);
+                          }}
+                          disabled={followLoading}
+                          style={styles.unfollowBtnDropdown}
+                        >
+                          <Text style={styles.unfollowText}>
+                            <Icon name="account-remove-outline" size={18} color="#00f2ff" /> Unfollow
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => setShowUnfollowDropdown(false)}
+                          style={styles.cancelBtn}
+                        >
+                          <Text style={styles.cancelText}>✕ Cancel</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                )}
+              </>
+            )}
             <View style={styles.statsRow}>
               <View style={styles.statCard}>
                 <View style={styles.statContent}>
@@ -185,34 +263,40 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
               </View>
             </View>
             <View style={styles.trophiesRow}>
-              <View style={styles.trophyBox}>
-                <Icon name="city" size={36} color="#00f2ff" />
-                <Text style={styles.trophyLabel}>CITY</Text>
-                <Text style={styles.trophyRank}>
-                  {getRank('city') && getRank('city')?.rank ? `${getRank('city')?.count} x ${getMedal(getRank('city')?.rank)}` : ''}
-                </Text>
-              </View>
-              <View style={styles.trophyBox}>
-                <Icon name="flag" size={36} color="#00f2ff" />
-                <Text style={styles.trophyLabel}>COUNTRY</Text>
-                <Text style={styles.trophyRank}>
-                 {getRank('country') && getRank('country')?.rank ? `${getRank('country')?.count} x ${getMedal(getRank('country')?.rank)}` : ''}
-                </Text>
-              </View>
-              <View style={styles.trophyBox}>
-                <Icon name="earth" size={36} color="#00f2ff" />
-                <Text style={styles.trophyLabel}>GLOBAL</Text>
-                <Text style={styles.trophyRank}>
-                {getRank('global') && getRank('global')?.rank ? `${getRank('global')?.count} x ${getMedal(getRank('global')?.rank)}` : ''}
-                </Text>
-              </View>
+              {getRank('city')?.rank && (
+                <View style={styles.trophyBox}>
+                  <Icon name="city" size={36} color="#00f2ff" />
+                  <Text style={styles.trophyLabel}>CITY</Text>
+                  <Text style={styles.trophyRank}>
+                    {`${getRank('city')?.count} x ${getMedal(getRank('city')?.rank)}`}
+                  </Text>
+                </View>
+              )}
+              {getRank('country')?.rank && (
+                <View style={styles.trophyBox}>
+                  <Icon name="flag" size={36} color="#00f2ff" />
+                  <Text style={styles.trophyLabel}>COUNTRY</Text>
+                  <Text style={styles.trophyRank}>
+                    {`${getRank('country')?.count} x ${getMedal(getRank('country')?.rank)}`}
+                  </Text>
+                </View>
+              )}
+              {getRank('global')?.rank && (
+                <View style={styles.trophyBox}>
+                  <Icon name="earth" size={36} color="#00f2ff" />
+                  <Text style={styles.trophyLabel}>GLOBAL</Text>
+                  <Text style={styles.trophyRank}>
+                    {`${getRank('global')?.count} x ${getMedal(getRank('global')?.rank)}`}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
         <PostsGrid posts={posts} onPostPress={setSelectedPostId} />
-        {loadingMore && <ActivityIndicator color="#00f2ff" style={{ marginTop: 18 }} />}
+        {loadingMore && <ActivityIndicator color="#00f2ff" style={styles.loadingMore} />}
         {!posts.length ? (
-          <Text style={{ color: '#aaa', textAlign: 'center', marginVertical: 24 }}>No posts available.</Text>
+          <Text style={styles.noPostsText}>No posts available.</Text>
         ) : (
           hasMore && !loadingMore && (
             <TouchableOpacity onPress={handleLoadMore} style={styles.loadMoreBtn}>
@@ -223,7 +307,7 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
       </ScrollView>
       {selectedPostId && (
         <PanGestureHandler onGestureEvent={handlePanGesture} onHandlerStateChange={handlePanGesture}>
-          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#101018' }}>
+          <View style={styles.modalOverlay}>
             <TouchableOpacity style={styles.backBtn} onPress={() => setSelectedPostId(null)}>
               <Icon name="arrow-left" size={26} color="#00f2ff" />
               <Text style={styles.backText}>Back to Profile</Text>
@@ -295,7 +379,6 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 18,
     marginTop: 8,
   },
   statCard: {
@@ -339,11 +422,12 @@ const styles = StyleSheet.create({
   trophiesRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 5,
+    marginBottom: 3,
   },
   trophyBox: {
     alignItems: 'center',
     marginHorizontal: 18,
+    marginTop: 18,
   },
   trophyLabel: {
     color: '#aaa',
@@ -368,13 +452,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
-    paddingTop: 8,
+    paddingTop: 20,
   },
   gridImage: {
     width: (width) / 3,
     height: (width) / 3,
     borderRadius: 5,
-    margin: 8,
+    margin: 0,
     backgroundColor: '#222',
     shadowColor: '#00f2ff',
     shadowOffset: { width: 0, height: 2 },
@@ -425,5 +509,88 @@ const styles = StyleSheet.create({
     right: 6,
     borderRadius: 12,
     padding: 4,
+  },
+  followBtn: {
+    backgroundColor: '#181828',
+    borderRadius: 22,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 8,
+    shadowColor: '#00f2ff',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
+    minWidth: 60,
+    height: 40,
+  },
+  followBtnActive: {
+    backgroundColor: '#00f2ff',
+    height: 40,
+  },
+  unfollowBtn: {
+    backgroundColor: '#181828',
+    height: 40,
+  },
+  followBtnText: {
+    color: '#101018',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  errorText: {
+    color: 'red',
+  },
+  loadingMore: {
+    marginTop: 18,
+  },
+  noPostsText: {
+    color: '#aaa',
+    textAlign: 'center',
+    marginVertical: 24,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#101018',
+  },
+  followingWrapper: {
+    position: 'relative',
+    alignItems: 'center',
+  },
+  unfollowText: {
+    color: '#00f2ff',
+    fontSize: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  unfollowBtnDropdown: {
+    marginBottom: 8,
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  cancelBtn: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  cancelText: {
+    color: '#aaa',
+    fontSize: 18,
+  },
+  unfollowDropdown: {
+    position: 'absolute',
+    top: 45,
+    backgroundColor: '#fff',
+    borderRadius: 22,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    zIndex: 10,
+    width: 150,
+    alignItems: 'center',
   },
 });
