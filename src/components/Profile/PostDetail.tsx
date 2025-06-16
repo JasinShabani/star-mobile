@@ -8,19 +8,23 @@ import { TapGestureHandler } from 'react-native-gesture-handler';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const { width } = Dimensions.get('window');
-const AVATAR_SIZE = 38;
+const AVATAR_SIZE = 36;
 const MOCK_AVATAR = 'https://randomuser.me/api/portraits/men/32.jpg';
 
 export default function PostDetail({ route, navigation }: any) {
   const nav = navigation || useNav();
   const rt = route || useRt<any>();
-  const { postId, user } = rt.params;
+  const { postId, user, rank, level } = rt.params;
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
   const animation = useRef(new Animated.Value(0)).current;
   const videoRefs = useRef<any>({});
+
+  useEffect(() => {
+    console.log('User from route params:', user);
+  }, [user]);
 
   useEffect(() => {
     (async () => {
@@ -102,10 +106,10 @@ export default function PostDetail({ route, navigation }: any) {
   });
 
   if (loading) {
-    return <View style={styles.center}><Text style={{ color: '#00f2ff' }}>Loading...</Text></View>;
+    return <View style={styles.center}><Text style={styles.loadingText}>Loading...</Text></View>;
   }
   if (!post) {
-    return <View style={styles.center}><Text style={{ color: 'red' }}>Post not found</Text></View>;
+    return <View style={styles.center}><Text style={styles.errorText}>Post not found</Text></View>;
   }
 
   const userAvatar = user?.profileImage || MOCK_AVATAR;
@@ -124,9 +128,16 @@ export default function PostDetail({ route, navigation }: any) {
           <Image source={{ uri: userAvatar }} style={styles.avatar} />
           <Text style={styles.headerUsername}>{username}</Text>
           <View style={{ flex: 1 }} />
-          <TouchableOpacity>
-            <Icon name="dots-horizontal" size={26} color="#aaa" />
-          </TouchableOpacity>
+          {typeof rank === 'number' && (
+                <View style={styles.rankBadge}>
+                  <Text style={styles.rankEmoji}>
+                    {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏅'}
+                  </Text>
+                  <Text style={styles.rankLevel}>
+                    {level?.charAt(0).toUpperCase() + level?.slice(1)}
+                  </Text>
+                </View>
+              )}
         </View>
 
         {/* Image Slider with Double Tap */}
@@ -208,35 +219,23 @@ export default function PostDetail({ route, navigation }: any) {
           </View>
         )}
 
-        {/* Star Row */}
-        <View style={styles.starRow}>
-          <View
-            style={[
-              styles.starPill,
-              post.hasStarred && { backgroundColor: '#FFD70022' }
-            ]}
+        {/* Caption with inline star button */}
+        <View style={styles.captionRow}>
+          <Text style={styles.caption}>
+            <Text style={styles.captionUsername}>{username}</Text> {post.caption}
+          </Text>
+          <TouchableOpacity
+            onPress={triggerStar}
+            style={styles.inlineStarButton}
+            activeOpacity={0.7}
           >
-            <TouchableOpacity
-              style={styles.starButton}
-              onPress={triggerStar}
-              activeOpacity={0.7}
-            >
-              {post.hasStarred ? (
-                <Text style={styles.bigStar}>🌟</Text>
-              ) : (
-                <Icon name="star-outline" size={36} color="#FFD700" />
-              )}
-              <Text style={styles.starCount}>{post.starsCount}</Text>
-            </TouchableOpacity>
-          </View>
-          {/* <TouchableOpacity style={styles.shareButton}>
-            <Icon name="share-outline" size={26} color="#fff" />
-          </TouchableOpacity> */}
-        </View>
-
-        {/* Caption */}
-        <View style={styles.captionWrap}>
-          <Text style={styles.caption}><Text style={styles.captionUsername}>{username}</Text> {post.caption}</Text>
+            {post.hasStarred ? (
+              <Text style={styles.bigStar}>🌟</Text>
+            ) : (
+              <Icon name="star-outline" size={26} color="#FFD700" />
+            )}
+            <Text style={styles.starCount}>{post.starsCount}</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </GestureHandlerRootView>
@@ -253,6 +252,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#101018',
+  },
+  loadingText: {
+    color: '#00f2ff',
+  },
+  errorText: {
+    color: 'red',
   },
   backButton: {
     position: 'absolute',
@@ -285,7 +290,7 @@ const styles = StyleSheet.create({
   headerUsername: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 17,
+    fontSize: 14,
   },
   slider: {
     width: '100%',
@@ -307,16 +312,16 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   dot: {
-    width: 8,
-    height: 8,
+    width: 6,
+    height: 6,
     borderRadius: 4,
     backgroundColor: '#444',
     marginHorizontal: 4,
   },
   dotActive: {
     backgroundColor: '#00f2ff',
-    width: 12,
-    height: 12,
+    width: 8,
+    height: 8,
     borderRadius: 6,
   },
   starRow: {
@@ -353,7 +358,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   bigStar: {
-    fontSize: 32,
+    fontSize: 22,
     marginRight: 4,
     marginLeft: 2,
   },
@@ -371,9 +376,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: 2,
   },
+  captionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  inlineStarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#222',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+  },
   caption: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     marginTop: 2,
     textAlign: 'left',
   },
@@ -393,5 +415,21 @@ const styles = StyleSheet.create({
     width: width,
     height: 500,
     backgroundColor: '#000',
+  },
+  rankBadge: {
+    backgroundColor: '#1eb2ba',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rankEmoji: {
+    fontSize: 24,
+  },
+  rankLevel: {
+    marginLeft: 6,
+    color: '#fff',
+    fontSize: 15,
   },
 });

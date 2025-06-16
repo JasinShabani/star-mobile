@@ -60,7 +60,7 @@ export default function TabNavigator() {
           fontSize: 13,
           marginBottom: 4,
         },
-        tabBarIcon: ({ color, size }) => {
+        tabBarIcon: ({ color, size, focused }) => {
           if (route.name === 'Profile') {
             return (
               <View style={{
@@ -86,10 +86,11 @@ export default function TabNavigator() {
           else if (route.name === 'Create') iconName = 'plus-circle';
 
           if (route.name === 'Leaderboard') {
+            const isFocused = route.name === 'Leaderboard' && focused;
             return (
               <View
                 style={{
-                  backgroundColor: '#FFD700',
+                  backgroundColor: isFocused ? '#ffdf00' : '#FFD700',
                   borderRadius: 40,
                   position: 'absolute',
                   top: -20,
@@ -97,14 +98,14 @@ export default function TabNavigator() {
                   width: 58,
                   justifyContent: 'center',
                   alignItems: 'center',
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 4,
-                  elevation: 5,
+                  shadowColor: '#FFD700',
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: isFocused ? 1 : 0.8,
+                  shadowRadius: isFocused ? 15 : 10,
+                  elevation: isFocused ? 7 : 5,
                 }}
               >
-                <Icon name={iconName} color="#181828" size={36} />
+                <Icon name={iconName} color={isFocused ? '#3b6265' : '#181828'} size={36} />
               </View>
             );
           }

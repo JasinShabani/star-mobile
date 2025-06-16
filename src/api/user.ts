@@ -39,3 +39,13 @@ export const getUserByUsername = async (username: string) => {
   const res = await api.get(`/user/${username}`);
   return res.data.user;
 };
+
+export const followUser = async (targetUserIdOrUsername: string) => {
+  const res = await api.post(`/user/${targetUserIdOrUsername}/follow`);
+  return res.data;
+};
+
+export const unfollowUser = async (targetUserIdOrUsername: string) => {
+  const res = await api.delete(`/user/${targetUserIdOrUsername}/unfollow`);
+  return res.data;
+};

@@ -226,31 +226,24 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
         ))}
         </View>
       )}
-      {/* Star Row */}
-      <View style={styles.starRow}>
-        <View
-          style={[
-            styles.starButton,
-            post.hasStarred && { backgroundColor: '#FFD70022' }
-          ]}
+      
+      {/* Caption and Inline Star */}
+      <View style={styles.captionRow}>
+        <Text style={styles.caption}>
+          <Text style={styles.captionUsername}>{post.user.username}</Text> {post.caption}
+        </Text>
+        <TouchableOpacity
+          style={styles.inlineStarButton}
+          onPress={() => onStar(post)}
+          activeOpacity={0.7}
         >
-          <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center' }}
-            onPress={() => onStar(post)}
-            activeOpacity={0.7}
-          >
-            {post.hasStarred ? (
-              <Text style={styles.bigStar}>🌟</Text>
-            ) : (
-              <Icon name="star-outline" size={32} color="#FFD700" />
-            )}
-            <Text style={styles.starCount}>{post.starCount}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      {/* Caption */}
-      <View style={styles.captionWrap}>
-        <Text style={styles.caption}><Text style={styles.captionUsername}>{post.user.username}</Text> {post.caption}</Text>
+          {post.hasStarred ? (
+            <Text style={styles.bigStar}>🌟</Text>
+          ) : (
+            <Icon name="star-outline" size={26} color="#FFD700" />
+          )}
+          <Text style={styles.inlineStarCount}>{post.starCount}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -383,9 +376,10 @@ export default function FeedScreen() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.screen}>
-        <Text style={styles.feedTitle}>Feed</Text>
+        {/* <Text style={styles.feedTitle}>Feed</Text> */}
         <FeedTabBar selected={tab} onSelect={setTab} />
         <CategoryTabs categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} />
+        <View style={styles.divider} />
         {loading && <ActivityIndicator color="#00f2ff" size="large" style={{ marginTop: 40 }} />}
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <FlatList
@@ -420,6 +414,7 @@ export default function FeedScreen() {
           showsVerticalScrollIndicator={false}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
+          ItemSeparatorComponent={() => <View style={{ height: 7 }} />}
         />
       </View>
     </GestureHandlerRootView>
@@ -430,7 +425,7 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#101018',
-    paddingTop: 53,
+    paddingTop: 63,
   },
   feedTitle: {
     color: '#fff',
@@ -458,26 +453,26 @@ const styles = StyleSheet.create({
   tabLabel: {
     color: '#aaa',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 13,
   },
   tabLabelActive: {
     color: '#101018',
   },
   categoryTabs: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: 13,
     paddingHorizontal: 8,
-    height: 65,
+    height: 60,
   },
   categoryTab: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#181828',
     borderRadius: 16,
-    paddingVertical: 7,
-    paddingHorizontal: 16,
+    paddingVertical: 3,
+    paddingHorizontal: 18,
     marginHorizontal: 6,
-    marginBottom: 2,
+    marginBottom: 0,
     borderWidth: 2,
     borderColor: 'transparent',
     height: 50,
@@ -487,7 +482,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#23233a',
   },
   categoryIcon: {
-    fontSize: 18,
+    fontSize: 15,
     marginRight: 7,
   },
   categoryLabel: {
@@ -501,12 +496,12 @@ const styles = StyleSheet.create({
   feedList: {
     flexGrow: 1,
     paddingHorizontal: 0,
-    paddingTop: 5,
+    paddingTop: 3,
   },
   postCard: {
     backgroundColor: '#181828',
     borderRadius: 22,
-    marginHorizontal: 14,
+    marginHorizontal: 0,
     marginBottom: 22,
     paddingBottom: 10,
     shadowColor: '#00f2ff',
@@ -522,8 +517,8 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   avatar: {
-    width: 38,
-    height: 38,
+    width: 36,
+    height: 36,
     borderRadius: 19,
     marginRight: 10,
     backgroundColor: '#222',
@@ -533,7 +528,7 @@ const styles = StyleSheet.create({
   username: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 14,
   },
   slider: {
     width: '100%',
@@ -543,13 +538,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   postImage: {
-    width: width - 28,
-    height: width - 28,
+    width: width,
+    height: width,
     borderRadius: 16,
     backgroundColor: '#222',
   },
   videoPost: {
-    width: width - 28,
+    width: width,
     height: 450,
     borderRadius: 16,
     backgroundColor: '#222',
@@ -561,16 +556,16 @@ const styles = StyleSheet.create({
     marginVertical: 6,
   },
   dot: {
-    width: 8,
-    height: 8,
+    width: 6,
+    height: 6,
     borderRadius: 4,
     backgroundColor: '#444',
     marginHorizontal: 4,
   },
   dotActive: {
     backgroundColor: '#00f2ff',
-    width: 12,
-    height: 12,
+    width: 8,
+    height: 8,
     borderRadius: 6,
   },
   starRow: {
@@ -584,9 +579,8 @@ const styles = StyleSheet.create({
   starButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#23233a',
     borderRadius: 30,
-    paddingVertical: 6,
+    paddingVertical: 0,
     paddingHorizontal: 18,
     shadowColor: '#FFD700',
     shadowOffset: { width: 0, height: 2 },
@@ -602,7 +596,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   bigStar: {
-    fontSize: 28,
+    fontSize: 22,
     marginRight: 4,
     marginLeft: 2,
   },
@@ -610,15 +604,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     marginTop: 2,
   },
+  captionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 18,
+    marginTop: 2,
+  },
+  inlineStarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#23233a',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+  },
+  inlineStarCount: {
+    color: '#FFD700',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 4,
+  },
   caption: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     marginTop: 2,
     textAlign: 'left',
   },
   captionUsername: {
     fontWeight: 'bold',
     color: '#fff',
+    fontSize: 14,
   },
   animatedStar: {
     position: 'absolute',
@@ -648,5 +664,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     marginLeft: 8,
-  }
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#23233a',
+    marginHorizontal: 16,
+    marginBottom: 12,
+  },
 });
