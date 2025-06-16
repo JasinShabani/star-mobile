@@ -102,6 +102,7 @@ export default function Profile() {
                 color="#00f2ff"
                 onPress={async () => {
                   await AsyncStorage.removeItem('auth_token');
+                  await AsyncStorage.removeItem('search_history_profiles');
                   dispatch(logout());
                 }}
               />

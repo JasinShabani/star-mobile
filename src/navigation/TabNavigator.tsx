@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { FeedScreen } from '../components/Feed';
@@ -10,7 +10,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CreatePostScreen from '../components/Upload/CreatePostScreen';
 import { SearchScreen } from '../components/Search';
 import UserProfileScreen from '../components/Profile/UserProfileScreen';
-import { View } from 'react-native';
+import { View, Image, DeviceEventEmitter } from 'react-native';
+import { getMe } from '../api/user';
 
 const Tab = createBottomTabNavigator();
 const ProfileStackNav = createNativeStackNavigator();
@@ -27,6 +28,20 @@ function ProfileStack() {
 }
 
 export default function TabNavigator() {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await getMe();
+        setUser(userData);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      }
+    };
+    fetchUser();
+  }, []);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -46,12 +61,30 @@ export default function TabNavigator() {
           marginBottom: 4,
         },
         tabBarIcon: ({ color, size }) => {
+          if (route.name === 'Profile') {
+            return (
+              <View style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                overflow: 'hidden',
+                borderWidth: 2,
+                borderColor: color,
+              }}>
+                <Image
+                  source={{ uri: user?.profileImage || 'https://randomuser.me/api/portraits/men/32.jpg' }}
+                  style={{ width: '100%', height: '100%' }}
+                />
+              </View>
+            );
+          }
+
           let iconName = '';
           if (route.name === 'Feed') iconName = 'home-variant';
           else if (route.name === 'Search') iconName = 'magnify';
           else if (route.name === 'Leaderboard') iconName = 'trophy-variant';
           else if (route.name === 'Create') iconName = 'plus-circle';
-          else if (route.name === 'Profile') iconName = 'account-circle';
+
           if (route.name === 'Leaderboard') {
             return (
               <View
@@ -75,15 +108,44 @@ export default function TabNavigator() {
               </View>
             );
           }
-          return <Icon name={iconName} color={color} size={size} />;
+          return <Icon name={iconName} color={color} size={30} />;
         },
       })}
+      onTabPress={({ route, preventDefault }) => {
+        DeviceEventEmitter.emit('pauseAllVideos');
+      }}
     >
-      <Tab.Screen name="Feed" component={FeedScreen} />
-      <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: 'Search' }} />
+      {/* <Tab.Screen name="Feed" component={FeedScreen} options={{ tabBarLabel: '' }} /> */}
+      <Tab.Screen
+        name="Feed"
+        component={FeedScreen}
+        options={{ tabBarLabel: '' }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Feed' }],
+            });
+          },
+        })}
+      />
+      <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: '' }} />
       <Tab.Screen name="Leaderboard" component={Leaderboard} options={{ tabBarLabel: '' }} />
-      <Tab.Screen name="Create" component={CreatePostScreen} options={{ tabBarLabel: 'Create' }} />
-      <Tab.Screen name="Profile" component={ProfileStack} />
+      <Tab.Screen name="Create" component={CreatePostScreen} options={{ tabBarLabel: '' }} />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileStack}
+        options={{ tabBarLabel: '' }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('Profile', {
+              screen: 'ProfileMain',
+            });
+          },
+        })}
+      />
     </Tab.Navigator>
   );
 }

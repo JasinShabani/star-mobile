@@ -4,6 +4,9 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getUserByUsername } from '../../api/user';
 import { getPostsByUsername } from '../../api/post';
 import { useRoute } from '@react-navigation/native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
+import PostDetail from './PostDetail';
+import { createThumbnail } from 'react-native-create-thumbnail';
 
 const { width } = Dimensions.get('window');
 
@@ -11,7 +14,24 @@ interface UserProfileScreenProps {
   username?: string;
 }
 
-function PostsGrid({ posts }: any) {
+function PostsGrid({ posts, onPostPress }: any) {
+  const [videoThumbnails, setVideoThumbnails] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    posts.forEach(async (post: any) => {
+      const firstMedia = post.media?.find((m: any) => m.order === 0);
+      if (firstMedia?.type === 'video' && !videoThumbnails[post.id]) {
+        try {
+          const { path } = await createThumbnail({ url: firstMedia.url });
+          setVideoThumbnails(prev => ({ ...prev, [post.id]: path }));
+        } catch (e) {
+          console.warn('Thumbnail generation failed', e);
+        }
+      }
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posts]);
+
   return (
     <View style={styles.grid}>
       {posts.map((post: any) => {
@@ -20,13 +40,26 @@ function PostsGrid({ posts }: any) {
         return (
           <TouchableOpacity
             key={post.id}
+            onPress={() => onPostPress(post.id)}
             activeOpacity={0.8}
             style={styles.imageWrapper}
           >
-            <Image
-              source={{ uri: firstMedia.url }}
-              style={styles.gridImage}
-            />
+            {firstMedia.type === 'video' ? (
+              <View>
+                <Image
+                  source={{ uri: videoThumbnails[post.id] || firstMedia.url }}
+                  style={styles.gridImage}
+                />
+                <View style={styles.videoIconOverlay}>
+                  <Icon name="video" size={22} color="#fff" />
+                </View>
+              </View>
+            ) : (
+              <Image
+                source={{ uri: firstMedia.url }}
+                style={styles.gridImage}
+              />
+            )}
             {post.media.length > 1 && (
               <View style={styles.multiIcon}>
                 <View style={styles.multiIconImage}>
@@ -41,6 +74,16 @@ function PostsGrid({ posts }: any) {
   );
 }
 
+// Helper: Modal wrapper for PostDetail with injected route params
+function PostDetailModal({ postId, user, onClose }: { postId: string, user: any, onClose: () => void }) {
+  return (
+    <PostDetail
+      route={{ params: { postId, user } }}
+      navigation={{ goBack: onClose }}
+    />
+  );
+}
+
 export default function UserProfileScreen({ username: propUsername }: UserProfileScreenProps) {
   const route = useRoute<any>();
   const username = propUsername || route.params?.username;
@@ -51,6 +94,7 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
   const fetchUserAndPosts = useCallback(async (reset = false, nextPage = 1) => {
     try {
@@ -87,6 +131,12 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
     }
   };
 
+  const handlePanGesture = ({ nativeEvent }: any) => {
+    if (nativeEvent.translationX > 60 && nativeEvent.state === State.END) {
+      setSelectedPostId(null);
+    }
+  };
+
   if (loading) {
     return <View style={styles.center}><ActivityIndicator size="large" color="#00f2ff" /></View>;
   }
@@ -105,65 +155,84 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.headerWrap}>
-        <View style={styles.headerGradient}>
-          <View style={styles.avatarContainer}>
-            <Image source={{ uri: user.profileImage }} style={styles.avatar} />
-          </View>
-          <Text style={styles.username}>{user.firstName} {user.lastName}</Text>
-          <Text style={styles.bio}>@{user.username}</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statCard}>
-              <View style={styles.statContent}>
-                <Text style={styles.statNumber}>{user.followersCount}</Text>
-                <Text style={styles.statLabel}>Followers</Text>
+    <>
+      <ScrollView style={styles.container}>
+        <View style={styles.headerWrap}>
+          <View style={styles.headerGradient}>
+            <View style={styles.avatarContainer}>
+              <Image source={{ uri: user.profileImage }} style={styles.avatar} />
+            </View>
+            <Text style={styles.username}>{user.firstName} {user.lastName}</Text>
+            <Text style={styles.bio}>@{user.username}</Text>
+            <View style={styles.statsRow}>
+              <View style={styles.statCard}>
+                <View style={styles.statContent}>
+                  <Text style={styles.statNumber}>{user.followersCount}</Text>
+                  <Text style={styles.statLabel}>Followers</Text>
+                </View>
+              </View>
+              <View style={styles.statCard}>
+                <View style={styles.statContent}>
+                  <Text style={styles.statNumber}>{user.totalStars}</Text>
+                  <Text style={styles.statEmoji}>🌟</Text>
+                </View>
+              </View>
+              <View style={styles.statCard}>
+                <View style={styles.statContent}>
+                  <Text style={styles.statNumber}>{user.followingCount}</Text>
+                  <Text style={styles.statLabel}>Following</Text>
+                </View>
               </View>
             </View>
-            <View style={styles.statCard}>
-              <View style={styles.statContent}>
-                <Text style={styles.statNumber}>{user.totalStars}</Text>
-                <Text style={styles.statEmoji}>🌟</Text>
+            <View style={styles.trophiesRow}>
+              <View style={styles.trophyBox}>
+                <Icon name="city" size={36} color="#00f2ff" />
+                <Text style={styles.trophyLabel}>CITY</Text>
+                <Text style={styles.trophyRank}>
+                  {getRank('city') && getRank('city')?.rank ? `${getRank('city')?.count} x ${getMedal(getRank('city')?.rank)}` : ''}
+                </Text>
               </View>
-            </View>
-            <View style={styles.statCard}>
-              <View style={styles.statContent}>
-                <Text style={styles.statNumber}>{user.followingCount}</Text>
-                <Text style={styles.statLabel}>Following</Text>
+              <View style={styles.trophyBox}>
+                <Icon name="flag" size={36} color="#00f2ff" />
+                <Text style={styles.trophyLabel}>COUNTRY</Text>
+                <Text style={styles.trophyRank}>
+                 {getRank('country') && getRank('country')?.rank ? `${getRank('country')?.count} x ${getMedal(getRank('country')?.rank)}` : ''}
+                </Text>
               </View>
-            </View>
-          </View>
-          <View style={styles.trophiesRow}>
-            <View style={styles.trophyBox}>
-              <Icon name="city" size={36} color="#00f2ff" />
-              <Text style={styles.trophyLabel}>CITY</Text>
-              <Text style={styles.trophyRank}>
-                {getRank('city') && getRank('city')?.rank ? `${getRank('city')?.count} x ${getMedal(getRank('city')?.rank)}` : ''}
-              </Text>
-            </View>
-            <View style={styles.trophyBox}>
-              <Icon name="flag" size={36} color="#00f2ff" />
-              <Text style={styles.trophyLabel}>COUNTRY</Text>
-              <Text style={styles.trophyRank}>
-               {getRank('country') && getRank('country')?.rank ? `${getRank('country')?.count} x ${getMedal(getRank('country')?.rank)}` : ''}
-              </Text>
-            </View>
-            <View style={styles.trophyBox}>
-              <Icon name="earth" size={36} color="#00f2ff" />
-              <Text style={styles.trophyLabel}>GLOBAL</Text>
-              <Text style={styles.trophyRank}>
-              {getRank('global') && getRank('global')?.rank ? `${getRank('global')?.count} x ${getMedal(getRank('global')?.rank)}` : ''}
-              </Text>
+              <View style={styles.trophyBox}>
+                <Icon name="earth" size={36} color="#00f2ff" />
+                <Text style={styles.trophyLabel}>GLOBAL</Text>
+                <Text style={styles.trophyRank}>
+                {getRank('global') && getRank('global')?.rank ? `${getRank('global')?.count} x ${getMedal(getRank('global')?.rank)}` : ''}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
-      </View>
-      <PostsGrid posts={posts} />
-      {loadingMore && <ActivityIndicator color="#00f2ff" style={{ marginTop: 18 }} />}
-      <TouchableOpacity onPress={handleLoadMore} style={styles.loadMoreBtn} disabled={!hasMore || loadingMore}>
-        <Text style={[styles.loadMoreText, (!hasMore || loadingMore) && { color: '#555' }]}>Load More</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <PostsGrid posts={posts} onPostPress={setSelectedPostId} />
+        {loadingMore && <ActivityIndicator color="#00f2ff" style={{ marginTop: 18 }} />}
+        {!posts.length ? (
+          <Text style={{ color: '#aaa', textAlign: 'center', marginVertical: 24 }}>No posts available.</Text>
+        ) : (
+          hasMore && !loadingMore && (
+            <TouchableOpacity onPress={handleLoadMore} style={styles.loadMoreBtn}>
+              <Text style={styles.loadMoreText}>Load More</Text>
+            </TouchableOpacity>
+          )
+        )}
+      </ScrollView>
+      {selectedPostId && (
+        <PanGestureHandler onGestureEvent={handlePanGesture} onHandlerStateChange={handlePanGesture}>
+          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#101018' }}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => setSelectedPostId(null)}>
+              <Icon name="arrow-left" size={26} color="#00f2ff" />
+              <Text style={styles.backText}>Back to Profile</Text>
+            </TouchableOpacity>
+            <PostDetailModal postId={selectedPostId} user={user} onClose={() => setSelectedPostId(null)} />
+          </View>
+        </PanGestureHandler>
+      )}
+    </>
   );
 }
 
@@ -336,5 +405,25 @@ const styles = StyleSheet.create({
     color: '#00f2ff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  backBtn: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backText: {
+    color: '#00f2ff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  videoIconOverlay: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    borderRadius: 12,
+    padding: 4,
   },
 });

@@ -1,18 +1,37 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
+import { createThumbnail } from 'react-native-create-thumbnail';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const { width } = Dimensions.get('window');
 
 export default function PostsGrid({ posts, user }: { posts: any[]; user: any }) {
   const navigation = useNavigation<any>();
+  const [thumbnails, setThumbnails] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    posts.forEach(async (post) => {
+      const firstMedia = post.media?.find((m: any) => m.order === 0);
+      if (firstMedia?.type === 'video' && !thumbnails[post.id]) {
+        try {
+          const { path } = await createThumbnail({ url: firstMedia.url });
+          setThumbnails((prev) => ({ ...prev, [post.id]: path }));
+        } catch (e) {
+          console.warn('Thumbnail error:', e);
+        }
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posts]);
 
   return (
     <View style={styles.grid}>
       {posts.map((post) => {
         const firstMedia = post.media?.find((m: any) => m.order === 0);
         if (!firstMedia) return null;
+        const isVideo = firstMedia.type === 'video';
         return (
           <TouchableOpacity
             key={post.id}
@@ -21,9 +40,19 @@ export default function PostsGrid({ posts, user }: { posts: any[]; user: any }) 
             style={styles.imageWrapper}
           >
             <Image
-              source={{ uri: firstMedia.url }}
+              source={{
+                uri: isVideo
+                  ? thumbnails[post.id] || firstMedia.url
+                  : firstMedia.url,
+              }}
               style={styles.gridImage}
             />
+            {isVideo && (
+              <View style={styles.videoIcon}>
+                                  <Icon name="video" size={22} color="#fff" />
+
+              </View>
+            )}
             {post.media.length > 1 && (
                 <View style={styles.multiIcon}>
                     <View style={styles.multiIconImage}>
@@ -73,5 +102,12 @@ const styles = StyleSheet.create({
     height: 18,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  videoIcon: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    borderRadius: 12,
+    padding: 4,
   },
 });

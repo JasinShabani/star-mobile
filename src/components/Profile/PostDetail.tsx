@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated, Easing } from 'react-native';
+import Video from 'react-native-video';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated, Easing, DeviceEventEmitter } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getPostById, starPost, unstarPost } from '../../api/post';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation as useNav, useRoute as useRt, useFocusEffect } from '@react-navigation/native';
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -10,15 +11,16 @@ const { width } = Dimensions.get('window');
 const AVATAR_SIZE = 38;
 const MOCK_AVATAR = 'https://randomuser.me/api/portraits/men/32.jpg';
 
-export default function PostDetail() {
-  const navigation = useNavigation();
-  const route = useRoute<any>();
-  const { postId, user } = route.params;
+export default function PostDetail({ route, navigation }: any) {
+  const nav = navigation || useNav();
+  const rt = route || useRt<any>();
+  const { postId, user } = rt.params;
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
   const animation = useRef(new Animated.Value(0)).current;
+  const videoRefs = useRef<any>({});
 
   useEffect(() => {
     (async () => {
@@ -31,6 +33,36 @@ export default function PostDetail() {
       }
     })();
   }, [postId]);
+
+  useEffect(() => {
+    // On unmount, pause all videos
+    return () => {
+      Object.values(videoRefs.current).forEach((ref: any) => {
+        if (ref && ref.seek) ref.seek(0);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    const pauseListener = DeviceEventEmitter.addListener('pauseAllVideos', () => {
+      Object.values(videoRefs.current).forEach((ref: any) => {
+        if (ref && ref.seek) ref.seek(0);
+      });
+    });
+    return () => pauseListener.remove();
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // When PostDetail is focused, do nothing
+      return () => {
+        // When PostDetail loses focus (tab change), pause and reset all videos
+        Object.values(videoRefs.current).forEach((ref: any) => {
+          if (ref && ref.seek) ref.seek(0);
+        });
+      };
+    }, [])
+  );
 
   const handleScroll = (event: any) => {
     const x = event.nativeEvent.contentOffset.x;
@@ -81,9 +113,9 @@ export default function PostDetail() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
+      <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
         {/* Back Arrow */}
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={styles.backButton} onPress={() => nav.goBack()}>
           <Icon name="arrow-left" size={28} color="#00f2ff" />
         </TouchableOpacity>
 
@@ -109,18 +141,44 @@ export default function PostDetail() {
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
-                style={styles.slider}
+                style={[
+                  styles.slider,
+                  {
+                    height:
+                      post.media?.[currentIndex]?.type === 'video' ? 500 : width,
+                  },
+                ]}
                 contentContainerStyle={styles.sliderContent}
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
               >
-                {post.media?.map((media: any) => (
-                  <Image
-                    key={media.id}
-                    source={{ uri: media.url }}
-                    style={styles.postImage}
-                  />
-                ))}
+                {post.media?.map((media: any, idx: number) =>
+                  media.type === 'video' ? (
+                    <View key={media.id} style={styles.postVideo}>
+                      <TouchableOpacity activeOpacity={1} onPress={() => {}} style={{ flex: 1 }}>
+                        <Video
+                          ref={ref => {
+                            videoRefs.current[media.id] = ref;
+                          }}
+                          source={{ uri: media.url }}
+                          style={StyleSheet.absoluteFill}
+                          resizeMode="cover"
+                          controls
+                          poster={media.thumbnailUrl}
+                          posterResizeMode="cover"
+                          repeat
+                          paused={currentIndex !== idx}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <Image
+                      key={media.id}
+                      source={{ uri: media.url }}
+                      style={styles.postImage}
+                    />
+                  )
+                )}
               </ScrollView>
               {/* Star Animation */}
               <Animated.View
@@ -139,18 +197,25 @@ export default function PostDetail() {
           </TapGestureHandler>
         </View>
         {/* Pagination Dots */}
-        <View style={styles.dotsRow}>
-          {post.media?.map((_: any, idx: number) => (
-            <View
-              key={idx}
-              style={[styles.dot, currentIndex === idx && styles.dotActive]}
-            />
-          ))}
-        </View>
+        {post.media?.length > 1 && (
+          <View style={styles.dotsRow}>
+            {post.media.map((_: any, idx: number) => (
+              <View
+                key={idx}
+                style={[styles.dot, currentIndex === idx && styles.dotActive]}
+              />
+            ))}
+          </View>
+        )}
 
         {/* Star Row */}
         <View style={styles.starRow}>
-          <View style={styles.starPill}>
+          <View
+            style={[
+              styles.starPill,
+              post.hasStarred && { backgroundColor: '#FFD70022' }
+            ]}
+          >
             <TouchableOpacity
               style={styles.starButton}
               onPress={triggerStar}
@@ -164,16 +229,16 @@ export default function PostDetail() {
               <Text style={styles.starCount}>{post.starsCount}</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.shareButton}>
+          {/* <TouchableOpacity style={styles.shareButton}>
             <Icon name="share-outline" size={26} color="#fff" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Caption */}
         <View style={styles.captionWrap}>
           <Text style={styles.caption}><Text style={styles.captionUsername}>{username}</Text> {post.caption}</Text>
         </View>
-      </View>
+      </ScrollView>
     </GestureHandlerRootView>
   );
 }
@@ -201,11 +266,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
+    paddingTop: 10,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 94,
+    paddingTop: 104,
     paddingBottom: 10,
     paddingHorizontal: 16,
   },
@@ -223,7 +289,6 @@ const styles = StyleSheet.create({
   },
   slider: {
     width: '100%',
-    maxHeight: width,
     marginBottom: 8,
   },
   sliderContent: {
@@ -323,5 +388,10 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     zIndex: 10,
+  },
+  postVideo: {
+    width: width,
+    height: 500,
+    backgroundColor: '#000',
   },
 });
