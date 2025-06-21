@@ -1,38 +1,51 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, Image } from 'react-native';
 import { TextInput, Button, Text, Divider } from 'react-native-paper';
 import { useDispatch } from 'react-redux';
 import { login } from '../../redux/authSlice';
 import { register as registerApi } from '../../api/auth';
+import { COUNTRIES, CITIES } from '../../constants/geo';
+import DropDownPicker from 'react-native-dropdown-picker';
 
 export default function Register({ navigation }: any) {
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [country, setCountry] = useState('');
+  const [city, setCity] = useState('');
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
   const dispatch = useDispatch();
 
   const handleRegister = async () => {
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
+    if (
+      !username.trim() ||
+      !password ||
+      !confirmPassword ||
+      !country ||
+      !city
+    ) {
+      setError('All fields are required');
       return;
     }
 
-    if (!username.trim()) {
-      setError('Username is required');
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
       return;
     }
 
     try {
       setError('');
       setLoading(true);
-      const response = await registerApi({
+      const payload = {
         username: username.trim(),
-        email: email.trim(),
         password,
-      });
+        country,
+        city,
+      };
+      const response = await registerApi(payload);
       dispatch(login(response));
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to register. Please try again.');
@@ -43,7 +56,7 @@ export default function Register({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.brandText}>Star</Text>
+      <Image source={{ uri: 'https://yasinsaban.com/star/star-logo-blue.png' }} style={styles.brandLogo} />
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -60,19 +73,45 @@ export default function Register({ navigation }: any) {
         disabled={loading}
       />
 
-      <TextInput
-        mode="outlined"
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
+      <DropDownPicker
+        open={showCountryDropdown}
+        value={country}
+        items={COUNTRIES}
+        setOpen={setShowCountryDropdown}
+        setValue={setCountry}
+        setItems={() => {}}
+        placeholder="Select Country"
         style={styles.input}
-        outlineColor="#2c2c2c"
-        activeOutlineColor="#00f2ff"
-        textColor="#ffffff"
+        dropDownContainerStyle={styles.dropdownContainer}
+        textStyle={{ color: '#ffffff', fontSize: 16 }}
         disabled={loading}
+        dropDownDirection="TOP"
+        ArrowDownIconComponent={null}
+        ArrowUpIconComponent={null}
+        listItemLabelStyle={{ color: '#fff' }}
+        placeholderStyle={{ color: '#888', fontSize: 16 }}
       />
+
+      {country ? (
+        <DropDownPicker
+          open={showCityDropdown}
+          value={city}
+          items={(CITIES[country] || []).map((c) => ({ label: c, value: c }))}
+          setOpen={setShowCityDropdown}
+          setValue={setCity}
+          setItems={() => {}}
+          placeholder="Select City"
+          style={styles.input}
+          dropDownContainerStyle={styles.dropdownContainer}
+          textStyle={{ color: '#ffffff', fontSize: 16 }}
+          disabled={loading}
+          dropDownDirection="TOP"
+          ArrowDownIconComponent={null}
+          ArrowUpIconComponent={null}
+          listItemLabelStyle={{ color: '#fff' }}
+          placeholderStyle={{ color: '#888', fontSize: 16 }}
+        />
+      ) : null}
 
       <TextInput
         mode="outlined"
@@ -134,7 +173,7 @@ export default function Register({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000',
     padding: 28,
     justifyContent: 'center',
   },
@@ -157,9 +196,24 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  brandLogo: {
+    width: 120,
+    height: 120,
+    alignSelf: 'center',
+  },
   input: {
     marginBottom: 20,
     backgroundColor: '#161616',
+    borderRadius: 4,
+    borderColor: '#2c2c2c',
+    paddingHorizontal: 12,
+    height: 56,
+    justifyContent: 'center',
+  },
+  dropdownContainer: {
+    backgroundColor: '#161616',
+    borderColor: '#2c2c2c',
+    borderWidth: 1,
   },
   button: {
     borderRadius: 12,

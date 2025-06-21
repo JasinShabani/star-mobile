@@ -14,7 +14,7 @@ const MOCK_AVATAR = 'https://randomuser.me/api/portraits/men/32.jpg';
 export default function PostDetail({ route, navigation }: any) {
   const nav = navigation || useNav();
   const rt = route || useRt<any>();
-  const { postId, user, rank, level } = rt.params;
+  const { postId, user, rank, level, country, city } = rt.params;
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -24,7 +24,9 @@ export default function PostDetail({ route, navigation }: any) {
 
   useEffect(() => {
     console.log('User from route params:', user);
-  }, [user]);
+    console.log('Country from route params:', country);
+    console.log('City from route params:', city);
+  }, [user, country, city]);
 
   useEffect(() => {
     (async () => {
@@ -128,13 +130,16 @@ export default function PostDetail({ route, navigation }: any) {
           <Image source={{ uri: userAvatar }} style={styles.avatar} />
           <Text style={styles.headerUsername}>{username}</Text>
           <View style={{ flex: 1 }} />
-          {typeof rank === 'number' && (
+          {typeof rank === 'number' && level && (
                 <View style={styles.rankBadge}>
-                  <Text style={styles.rankEmoji}>
-                    {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏅'}
-                  </Text>
-                  <Text style={styles.rankLevel}>
-                    {level?.charAt(0).toUpperCase() + level?.slice(1)}
+                  <Text style={styles.rankBadgeText}>
+                    {`#${rank} ${
+                      level === 'country'
+                        ? (country || 'Country')
+                        : level === 'city'
+                        ? (city || 'City')
+                        : 'Global'
+                    }`}
                   </Text>
                 </View>
               )}
@@ -431,5 +436,10 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     color: '#fff',
     fontSize: 15,
+  },
+  rankBadgeText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 });

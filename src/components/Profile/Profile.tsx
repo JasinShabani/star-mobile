@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Dimensions, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Dimensions, TouchableOpacity, Image, Alert, DeviceEventEmitter } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getMe } from '../../api/user';
 import { useDispatch } from 'react-redux';
@@ -37,6 +37,8 @@ export default function Profile() {
         await AsyncStorage.removeItem('auth_token');
         dispatch(logout());
       }
+      await AsyncStorage.removeItem('auth_token');
+      dispatch(logout());
     } finally {
       if (isActive) setLoading(false);
     }
@@ -55,7 +57,8 @@ export default function Profile() {
   const handleImagePicked = async (image: { uri: string; mime: string; name: string }) => {
     try {
       await uploadProfileImage(image);
-      fetchData();
+      await fetchData();
+      DeviceEventEmitter.emit('profileImageUpdated');
       Alert.alert('Profile image updated successfully.');
     } catch (e) {
       Alert.alert('Error', 'Failed to upload profile image.');

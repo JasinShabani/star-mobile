@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { FeedScreen } from '../components/Feed';
@@ -12,6 +12,7 @@ import { SearchScreen } from '../components/Search';
 import UserProfileScreen from '../components/Profile/UserProfileScreen';
 import { View, Image, DeviceEventEmitter } from 'react-native';
 import { getMe } from '../api/user';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator();
 const ProfileStackNav = createNativeStackNavigator();
@@ -40,6 +41,21 @@ export default function TabNavigator() {
       }
     };
     fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener('profileImageUpdated', async () => {
+      try {
+        const userData = await getMe();
+        setUser(userData);
+      } catch (error) {
+        console.error('Failed to refresh user after profile image update:', error);
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   return (
@@ -72,7 +88,7 @@ export default function TabNavigator() {
                 borderColor: color,
               }}>
                 <Image
-                  source={{ uri: user?.profileImage || 'https://randomuser.me/api/portraits/men/32.jpg' }}
+                  source={{ uri: user?.profileImage || 'https://yasinsaban.com/star/profile/no_profile_image.jpg' }}
                   style={{ width: '100%', height: '100%' }}
                 />
               </View>
