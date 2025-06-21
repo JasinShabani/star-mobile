@@ -1,52 +1,55 @@
 {
   "images" : [
     {
-      "filename" : "star Logo 40x40.jpg",
+      "filename" : "star Logo 5 40x40.jpg",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "20x20"
     },
     {
-      "filename" : "star Logo 60x60.jpg",
+      "filename" : "star Logo 5 60x60.jpg",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "20x20"
     },
     {
+      "filename" : "star Logo 5 58x58.jpg",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "29x29"
     },
     {
+      "filename" : "star Logo 5 87x87.jpg",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "29x29"
     },
     {
+      "filename" : "star Logo 5 80x80.jpg",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "40x40"
     },
     {
-      "filename" : "star Logo 120x120 1.jpg",
+      "filename" : "star Logo 5 120x120 1.jpg",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "40x40"
     },
     {
-      "filename" : "star Logo 120x120.jpg",
+      "filename" : "star Logo 5 120x120.jpg",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "60x60"
     },
     {
-      "filename" : "star Logo 180x180.jpg",
+      "filename" : "star Logo 5 180x180.jpg",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "60x60"
     },
     {
-      "filename" : "star Logo 1024x1024.jpg",
+      "filename" : "star Logo 5 1024x1024.jpg",
       "idiom" : "ios-marketing",
       "scale" : "1x",
       "size" : "1024x1024"

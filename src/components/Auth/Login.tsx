@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, Image } from 'react-native';
 import { TextInput, Button, Text, Divider } from 'react-native-paper';
 import { useDispatch } from 'react-redux';
 import { login } from '../../redux/authSlice';
 import { login as loginApi } from '../../api/auth';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function Login({ navigation }: any) {
   const [email, setEmail] = useState('');
@@ -27,7 +28,7 @@ export default function Login({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.brandText}>Star</Text>
+      <Image source={{ uri: 'https://yasinsaban.com/star/star-logo-blue.png' }} style={styles.brandLogo} />
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -92,7 +93,7 @@ export default function Login({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000',
     padding: 28,
     justifyContent: 'center',
   },
@@ -114,6 +115,12 @@ const styles = StyleSheet.create({
         elevation: 6,
       },
     }),
+  },
+  brandLogo: {
+    width: 120,
+    height: 120,
+    alignSelf: 'center',
+    marginBottom: 30,
   },
   input: {
     marginBottom: 20,
