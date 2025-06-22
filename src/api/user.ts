@@ -49,3 +49,14 @@ export const unfollowUser = async (targetUserIdOrUsername: string) => {
   const res = await api.delete(`/user/${targetUserIdOrUsername}/unfollow`);
   return res.data;
 };
+
+// New helpers to fetch current user's followers and following lists
+export const getFollowers = async () => {
+  const res = await api.get('/user/followers');
+  return res.data;
+};
+
+export const getFollowing = async () => {
+  const res = await api.get('/user/following');
+  return res.data;
+};

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet, Dimensions, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Svg, { Path } from 'react-native-svg';
 import { createThumbnail } from 'react-native-create-thumbnail';
@@ -51,6 +51,11 @@ export default function PostsGrid({ posts, user }: { posts: any[]; user: any }) 
               <View style={styles.videoIcon}>
                                   <Icon name="video" size={22} color="#fff" />
 
+              </View>
+            )}
+            {(post.global_rank || post.country_rank || post.city_rank) && (
+              <View style={styles.badgeIcon}>
+                <Text style={styles.badgeEmoji}>🌟</Text>
               </View>
             )}
             {post.media.length > 1 && (
@@ -109,5 +114,15 @@ const styles = StyleSheet.create({
     right: 6,
     borderRadius: 12,
     padding: 4,
+  },
+  badgeIcon: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    borderRadius: 12,
+    padding: 4,
+  },
+  badgeEmoji: {
+    fontSize: 17,
   },
 });

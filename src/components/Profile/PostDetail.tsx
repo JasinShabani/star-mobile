@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Video from 'react-native-video';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated, Easing, DeviceEventEmitter } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated, Easing, DeviceEventEmitter, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getPostById, starPost, unstarPost } from '../../api/post';
 import { useNavigation as useNav, useRoute as useRt, useFocusEffect } from '@react-navigation/native';
@@ -21,6 +21,15 @@ export default function PostDetail({ route, navigation }: any) {
   const scrollRef = useRef<ScrollView>(null);
   const animation = useRef(new Animated.Value(0)).current;
   const videoRefs = useRef<any>({});
+  const [rankModalVisible, setRankModalVisible] = useState(false);
+
+  const openUserProfile = () => {
+    // Navigate to nested stack: Tab "Profile" → Screen "UserProfile"
+    nav.navigate('Profile', {
+      screen: 'UserProfile',
+      params: { userId: user?.id },
+    });
+  };
 
   useEffect(() => {
     console.log('User from route params:', user);
@@ -127,22 +136,23 @@ export default function PostDetail({ route, navigation }: any) {
 
         {/* Header Row */}
         <View style={styles.headerRow}>
-          <Image source={{ uri: userAvatar }} style={styles.avatar} />
-          <Text style={styles.headerUsername}>{username}</Text>
+          <TouchableOpacity
+            style={styles.profileTap}
+            activeOpacity={0.8}
+            onPress={openUserProfile}
+          >
+            <Image source={{ uri: userAvatar }} style={styles.avatar} />
+            <Text style={styles.headerUsername}>{username}</Text>
+          </TouchableOpacity>
           <View style={{ flex: 1 }} />
-          {typeof rank === 'number' && level && (
-                <View style={styles.rankBadge}>
-                  <Text style={styles.rankBadgeText}>
-                    {`#${rank} ${
-                      level === 'country'
-                        ? (country || 'Country')
-                        : level === 'city'
-                        ? (city || 'City')
-                        : 'Global'
-                    }`}
-                  </Text>
-                </View>
-              )}
+          {(post.global_rank !== null || post.country_rank !== null || post.city_rank !== null) && (
+            <TouchableOpacity
+              onPress={() => setRankModalVisible(true)}
+              style={styles.trophyButton}
+            >
+              <Text style={styles.trophyEmoji}>🏆 Trophies</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Image Slider with Double Tap */}
@@ -242,6 +252,51 @@ export default function PostDetail({ route, navigation }: any) {
             <Text style={styles.starCount}>{post.starsCount}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Rank details modal */}
+        <Modal
+          transparent
+          animationType="slide"
+          visible={rankModalVisible}
+          onRequestClose={() => setRankModalVisible(false)}
+        >
+          <View style={styles.modalBack}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity
+                onPress={() => setRankModalVisible(false)}
+                style={styles.modalClose}
+              >
+                <Icon name="close" size={26} color="#00f2ff" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>🏆 Trophies</Text>
+
+              {post.global_rank !== null && (
+                <View style={styles.rankLineBox}>
+                  <Text style={styles.rankEmoji}>
+                    {post.global_rank === 1 ? '🥇' : post.global_rank === 2 ? '🥈' : '🥉'}
+                  </Text>
+                  <Text style={styles.rankLineText}>{`#${post.global_rank} Global`}</Text>
+                </View>
+              )}
+              {post.country_rank !== null && (
+                <View style={styles.rankLineBox}>
+                  <Text style={styles.rankEmoji}>
+                    {post.country_rank === 1 ? '🥇' : post.country_rank === 2 ? '🥈' : '🥉'}
+                  </Text>
+                  <Text style={styles.rankLineText}>{`#${post.country_rank} Country`}</Text>
+                </View>
+              )}
+              {post.city_rank !== null && (
+                <View style={styles.rankLineBox}>
+                  <Text style={styles.rankEmoji}>
+                    {post.city_rank === 1 ? '🥇' : post.city_rank === 2 ? '🥈' : '🥉'}
+                  </Text>
+                  <Text style={styles.rankLineText}>{`#${post.city_rank} City`}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </GestureHandlerRootView>
   );
@@ -428,6 +483,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 4,
   },
   rankEmoji: {
     fontSize: 24,
@@ -441,5 +497,66 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontWeight: 'bold',
+  },
+  profileTap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  trophyButton: {
+    padding: 10,
+    backgroundColor: '#181828',
+    borderRadius: 12,
+  },
+  trophyEmoji: {
+    color: 'white',
+    fontSize: 15,
+  },
+  /* Modal styles */
+  modalBack: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#101018',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 14,
+    paddingBottom: 28,
+    paddingHorizontal: 20,
+  },
+  modalClose: {
+    alignSelf: 'flex-end',
+    padding: 4,
+  },
+  modalTitle: {
+    color: '#00f2ff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  rankLine: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginVertical: 4,
+  },
+  rankLineBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#181828',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 22,
+    marginVertical: 6,
+  },
+  rankLineText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 10,
   },
 });

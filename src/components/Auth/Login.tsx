@@ -28,7 +28,7 @@ export default function Login({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <Image source={{ uri: 'https://yasinsaban.com/star/star-logo-blue.png' }} style={styles.brandLogo} />
+      <Image source={{ uri: 'https://yasinsaban.com/star/star-logo-transparent-black.png' }} style={styles.brandLogo} />
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -117,10 +117,10 @@ const styles = StyleSheet.create({
     }),
   },
   brandLogo: {
-    width: 120,
+    width: 180,
     height: 120,
     alignSelf: 'center',
-    marginBottom: 30,
+    marginBottom: 25,
   },
   input: {
     marginBottom: 20,
