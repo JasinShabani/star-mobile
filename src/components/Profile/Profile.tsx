@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Dimensions, TouchableOpacity, Image, Alert, DeviceEventEmitter } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Dimensions, TouchableOpacity, Image, Alert, DeviceEventEmitter, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getMe } from '../../api/user';
+import { getMe, getFollowers, getFollowing } from '../../api/user';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logout } from '../../redux/authSlice';
@@ -22,6 +22,12 @@ export default function Profile() {
   const dispatch = useDispatch();
   const navigation = useNavigation<any>();
   const [showImageModal, setShowImageModal] = useState(false);
+  const [followers, setFollowers] = useState<any[]>([]);
+  const [followingList, setFollowingList] = useState<any[]>([]);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
+  const [loadingFollowers, setLoadingFollowers] = useState(false);
+  const [loadingFollowing, setLoadingFollowing] = useState(false);
 
   const fetchData = useCallback(async () => {
     let isActive = true;
@@ -83,6 +89,30 @@ export default function Profile() {
     return `#${rank}`;
   };
 
+  const openFollowers = async () => {
+    setShowFollowersModal(true);
+    setLoadingFollowers(true);
+    try {
+      const list = await getFollowers();
+      setFollowers(list);
+    } catch {
+    } finally {
+      setLoadingFollowers(false);
+    }
+  };
+
+  const openFollowing = async () => {
+    setShowFollowingModal(true);
+    setLoadingFollowing(true);
+    try {
+      const list = await getFollowing();
+      setFollowingList(list);
+    } catch {
+    } finally {
+      setLoadingFollowing(false);
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Header with gradient or card */}
@@ -124,24 +154,24 @@ export default function Profile() {
 
           {/* Stats Row */}
           <View style={styles.statsRow}>
-            <View style={styles.statCard}>
+            <TouchableOpacity style={styles.statCard} onPress={openFollowers} activeOpacity={0.8}>
               <View style={styles.statContent}>
                 <Text style={styles.statNumber}>{user.followersCount}</Text>
                 <Text style={styles.statLabel}>Followers</Text>
               </View>
-            </View>
+            </TouchableOpacity>
             <View style={styles.statCard}>
               <View style={styles.statContent}>
                 <Text style={styles.statNumber}>{user.totalStars}</Text>
                 <Text style={styles.statEmoji}>🌟</Text>
               </View>
             </View>
-            <View style={styles.statCard}>
+            <TouchableOpacity style={styles.statCard} onPress={openFollowing} activeOpacity={0.8}>
               <View style={styles.statContent}>
                 <Text style={styles.statNumber}>{user.followingCount}</Text>
                 <Text style={styles.statLabel}>Following</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
 
           {/* Trophies Row */}
@@ -189,6 +219,82 @@ export default function Profile() {
         onClose={() => setShowImageModal(false)}
         onImagePicked={handleImagePicked}
       />
+
+      {/* Followers Modal */}
+      {showFollowersModal && (
+        <Modal visible transparent animationType="slide">
+          <View style={styles.modalBack}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity onPress={() => setShowFollowersModal(false)} style={styles.modalClose}>
+                <Icon name="close" size={26} color="#00f2ff" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Followers</Text>
+              {loadingFollowers ? (
+                <ActivityIndicator color="#00f2ff" style={{ marginTop: 20 }} />
+              ) : (
+                <ScrollView>
+                  {followers.map((u: any) => (
+                    <TouchableOpacity
+                      key={u.id}
+                      style={styles.userRow}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        setShowFollowersModal(false);
+                        // @ts-ignore
+                        navigation.navigate('UserProfile', { username: u.username, fromModal: true });
+                      }}
+                    >
+                      <Image source={{ uri: u.profileImage }} style={styles.userAvatar} />
+                      <Text style={styles.userName}>@{u.username}</Text>
+                    </TouchableOpacity>
+                  ))}
+                  {followers.length === 0 && (
+                    <Text style={{ color: '#aaa', textAlign: 'center', marginTop: 30 }}>No followers yet.</Text>
+                  )}
+                </ScrollView>
+              )}
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* Following Modal */}
+      {showFollowingModal && (
+        <Modal visible transparent animationType="slide">
+          <View style={styles.modalBack}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity onPress={() => setShowFollowingModal(false)} style={styles.modalClose}>
+                <Icon name="close" size={26} color="#00f2ff" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Following</Text>
+              {loadingFollowing ? (
+                <ActivityIndicator color="#00f2ff" style={{ marginTop: 20 }} />
+              ) : (
+                <ScrollView>
+                  {followingList.map((u: any) => (
+                    <TouchableOpacity
+                      key={u.id}
+                      style={styles.userRow}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        setShowFollowingModal(false);
+                        // @ts-ignore
+                        navigation.navigate('UserProfile', { username: u.username, fromModal: true });
+                      }}
+                    >
+                      <Image source={{ uri: u.profileImage }} style={styles.userAvatar} />
+                      <Text style={styles.userName}>@{u.username}</Text>
+                    </TouchableOpacity>
+                  ))}
+                  {followingList.length === 0 && (
+                    <Text style={{ color: '#aaa', textAlign: 'center', marginTop: 30 }}>No following yet.</Text>
+                  )}
+                </ScrollView>
+              )}
+            </View>
+          </View>
+        </Modal>
+      )}
     </ScrollView>
   );
 }
@@ -277,7 +383,7 @@ const styles = StyleSheet.create({
     borderColor: '#101018',
   },
   username: {
-    fontSize: 25,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 2,
@@ -298,9 +404,9 @@ const styles = StyleSheet.create({
   },
   statCard: {
     backgroundColor: '#181828',
-    borderRadius: 22,
+    borderRadius: 20,
     paddingVertical: 0,
-    paddingHorizontal: 22,
+    paddingHorizontal: 18,   // was 22
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 8,
@@ -308,8 +414,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10,
     shadowRadius: 6,
-    minWidth: 80,
-    height: 70,
+    minWidth: 70,            // was 80
+    height: 60,              // was 70
   },
   statContent: {
     flex: 1,
@@ -320,17 +426,17 @@ const styles = StyleSheet.create({
   statNumber: {
     color: '#00f2ff',
     fontWeight: 'bold',
-    fontSize: 20,
+    fontSize: 18,            // was 20
     marginBottom: 2,
     textAlign: 'center',
   },
   statLabel: {
     color: '#aaa',
-    fontSize: 13,
+    fontSize: 12,            // was 13
     textAlign: 'center',
   },
   statEmoji: {
-    fontSize: 25,
+    fontSize: 22,            // was 25
     marginTop: 1,
     textAlign: 'center',
   },
@@ -345,13 +451,13 @@ const styles = StyleSheet.create({
   },
   trophyLabel: {
     color: '#aaa',
-    fontSize: 15,
+    fontSize: 13,            // was 15
     marginTop: 2,
   },
   trophyRank: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 18,
+    fontSize: 16,            // was 18
     marginTop: 2,
   },
   trophyCount: {
@@ -398,12 +504,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  modalBack: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
   modalContent: {
-    backgroundColor: '#181828',
-    borderRadius: 16,
-    padding: 24,
-    width: 320,
-    alignItems: 'center',
+    maxHeight: '70%',
+    backgroundColor: '#101018',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 12,
+    paddingHorizontal: 18,
+    paddingBottom: 24,
   },
   modalButton: {
     backgroundColor: '#00f2ff',
@@ -412,5 +525,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 12,
     width: 180,
+  },
+  modalClose: {
+    position: 'absolute',
+    top: 18,
+    right: 18,
+    zIndex: 10,
+    backgroundColor: '#222',
+    borderRadius: 20,
+    padding: 6,
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 20,
+  },
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+  },
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  userName: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 });

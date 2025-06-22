@@ -453,14 +453,14 @@ const styles = StyleSheet.create({
   tabLabel: {
     color: '#aaa',
     fontWeight: 'bold',
-    fontSize: 13,
+    fontSize: 12,
   },
   tabLabelActive: {
     color: '#101018',
   },
   categoryTabs: {
     flexDirection: 'row',
-    marginBottom: 13,
+    marginBottom: 7,
     paddingHorizontal: 8,
     height: 60,
   },
@@ -475,14 +475,14 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     borderWidth: 2,
     borderColor: 'transparent',
-    height: 50,
+    height: 40,
   },
   categoryTabActive: {
     borderColor: '#00f2ff',
     backgroundColor: '#23233a',
   },
   categoryIcon: {
-    fontSize: 15,
+    fontSize: 14,
     marginRight: 7,
   },
   categoryLabel: {

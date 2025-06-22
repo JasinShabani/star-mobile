@@ -241,7 +241,7 @@ export default function Leaderboard() {
     return (
       <PanGestureHandler onGestureEvent={() => setSelectedPostUser(null)}>
         <View style={{ flex: 1, backgroundColor: '#101018' }}>
-          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 16 }} onPress={() => setSelectedPostUser(null)}>
+          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 16, marginTop: 35 }} onPress={() => setSelectedPostUser(null)}>
             <Icon name="arrow-left" size={26} color="#00f2ff" />
             <Text style={{ color: '#00f2ff', fontWeight: 'bold', fontSize: 16, marginLeft: 8 }}>Back to Leaderboard</Text>
           </TouchableOpacity>
@@ -277,18 +277,19 @@ export default function Leaderboard() {
     );
   }
 
-  // Separate first‑three ranks (at least one entry each) vs the rest
-  const rest: any[] = [];
-  const ranksUsed = new Set<number>();
-
-  data.forEach((entry) => {
-    if (entry.rank <= 3 && !ranksUsed.has(entry.rank)) {
-      rest.push(entry);
-      ranksUsed.add(entry.rank);
-    } else if (entry.rank > 3) {
-      rest.push(entry);
+  // Collect postIds that are already displayed in the Top‑3 section
+  const topPostIds = new Set<string>();
+  [1, 2, 3].forEach((r) => {
+    const grp = topRankGroups[r];
+    if (grp) {
+      grp.forEach((e: any) => topPostIds.add(e.post.id));
     }
   });
+
+  // Rest = entries ranked >3 whose *postId* is not in Top‑3
+  const rest = data.filter(
+    (entry) => entry.rank > 3 && !topPostIds.has(entry.post.id)
+  );
 
   // ShareModal JSX
   const ShareModal = (
@@ -649,9 +650,15 @@ export default function Leaderboard() {
         </Modal>
       )}
 
+      {/* Fixed Share button */}
       {shareAvailable && (
-        <TouchableOpacity style={{alignSelf:'center', backgroundColor:'#00f2ff', paddingVertical:10, paddingHorizontal:26, borderRadius:24, marginBottom:20}} onPress={openShareModal}>
-          <Text style={{fontWeight:'bold',fontSize:16}}><Icon name="share-variant" size={18} color="#101018"/>  Share My Rank</Text>
+        <TouchableOpacity
+          style={styles.shareBtnFixed}
+          onPress={openShareModal}
+          activeOpacity={0.85}
+        >
+          <Icon name="share-variant" size={20} color="#101018" />
+          <Text style={styles.shareBtnFixedText}>  Share My Rank</Text>
         </TouchableOpacity>
       )}
       {ShareModal}
@@ -955,5 +962,40 @@ const styles = StyleSheet.create({
     color: '#aaa',
     fontSize: 14,
     marginBottom: 4,
+  },
+  shareBtn: {
+    alignSelf: 'center',
+    backgroundColor: '#00f2ff',
+    paddingVertical: 10,
+    paddingHorizontal: 26,
+    borderRadius: 24,
+    marginTop: 10,
+    marginBottom: 30,
+  },
+  shareBtnText: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#101018',
+  },
+  shareBtnFixed: {
+    position: 'absolute',
+    bottom: 30,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    backgroundColor: '#00f2ff',
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 28,
+    zIndex: 999,
+    shadowColor: '#00f2ff',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  shareBtnFixedText: {
+    color: '#101018',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

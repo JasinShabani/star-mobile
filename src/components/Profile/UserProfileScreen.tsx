@@ -60,6 +60,11 @@ function PostsGrid({ posts, onPostPress }: any) {
                 style={styles.gridImage}
               />
             )}
+            {(post.global_rank || post.country_rank || post.city_rank) && (
+              <View style={styles.badgeIcon}>
+                <Text style={styles.badgeEmoji}>🌟</Text>
+              </View>
+            )}
             {post.media.length > 1 && (
               <View style={styles.multiIcon}>
                 <View style={styles.multiIconImage}>
@@ -87,6 +92,7 @@ function PostDetailModal({ postId, user, onClose }: { postId: string, user: any,
 export default function UserProfileScreen({ username: propUsername }: UserProfileScreenProps) {
   const route = useRoute<any>();
   const username = propUsername || route.params?.username;
+  const fromModal = route.params?.fromModal ?? false;
   const [user, setUser] = useState<any>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -175,8 +181,8 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
   return (
     <>
       <ScrollView style={styles.container}>
-        <View style={styles.headerWrap}>
-          <View style={styles.headerGradient}>
+        <View style={[styles.headerWrap, fromModal && { paddingTop: 30 }]}>
+          <View style={[styles.headerGradient, fromModal && { paddingTop: 30 }]}>
             <View style={styles.avatarContainer}>
               <Image source={{ uri: user.profileImage }} style={styles.avatar} />
             </View>
@@ -308,7 +314,7 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
       {selectedPostId && (
         <PanGestureHandler onGestureEvent={handlePanGesture} onHandlerStateChange={handlePanGesture}>
           <View style={styles.modalOverlay}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => setSelectedPostId(null)}>
+            <TouchableOpacity style={[styles.backBtn, fromModal && { top: 55 }]} onPress={() => setSelectedPostId(null)}>
               <Icon name="arrow-left" size={26} color="#00f2ff" />
               <Text style={styles.backText}>Back to Profile</Text>
             </TouchableOpacity>
@@ -385,7 +391,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#181828',
     borderRadius: 22,
     paddingVertical: 0,
-    paddingHorizontal: 22,
+    paddingHorizontal: 18,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 8,
@@ -393,8 +399,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.10,
     shadowRadius: 6,
-    minWidth: 80,
-    height: 70,
+    minWidth: 70,
+    height: 60,
   },
   statContent: {
     flex: 1,
@@ -405,17 +411,17 @@ const styles = StyleSheet.create({
   statNumber: {
     color: '#00f2ff',
     fontWeight: 'bold',
-    fontSize: 20,
+    fontSize: 18,
     marginBottom: 2,
     textAlign: 'center',
   },
   statLabel: {
     color: '#aaa',
-    fontSize: 13,
+    fontSize: 12,
     textAlign: 'center',
   },
   statEmoji: {
-    fontSize: 25,
+    fontSize: 22,
     marginTop: 1,
     textAlign: 'center',
   },
@@ -431,13 +437,13 @@ const styles = StyleSheet.create({
   },
   trophyLabel: {
     color: '#aaa',
-    fontSize: 15,
+    fontSize: 13,
     marginTop: 2,
   },
   trophyRank: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 18,
+    fontSize: 16,
     marginTop: 2,
   },
   sectionTitle: {
@@ -509,6 +515,16 @@ const styles = StyleSheet.create({
     right: 6,
     borderRadius: 12,
     padding: 4,
+  },
+  badgeIcon: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    borderRadius: 12,
+    padding: 4,
+  },
+  badgeEmoji: {
+    fontSize: 17,
   },
   followBtn: {
     backgroundColor: '#181828',
