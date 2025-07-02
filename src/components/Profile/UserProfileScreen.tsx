@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Image, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Image, TouchableOpacity, Dimensions, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getUserByUsername, getMe, followUser, unfollowUser } from '../../api/user';
+import { getUserByUsername, getMe, followUser, unfollowUser, blockUser, unblockUser } from '../../api/user';
 import { getPostsByUsername } from '../../api/post';
 import { useRoute } from '@react-navigation/native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
@@ -105,6 +105,8 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [showUnfollowDropdown, setShowUnfollowDropdown] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [isBlocked, setIsBlocked] = useState<boolean>(false);
 
   const fetchUserAndPosts = useCallback(async (reset = false, nextPage = 1) => {
     try {
@@ -144,6 +146,7 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
   useEffect(() => {
    if (!user || !currentUser) return;
    setIsFollowing(!!user.isFollowing);
+   setIsBlocked(!!user.isUserBlockedByMe);
   }, [user, currentUser]);
 
   const handleLoadMore = () => {
@@ -183,6 +186,40 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
       <ScrollView style={styles.container}>
         <View style={[styles.headerWrap, fromModal && { paddingTop: 30 }]}>
           <View style={[styles.headerGradient, fromModal && { paddingTop: 30 }]}>
+            {/* Menu three-dot button */}
+            {currentUser && user.id !== currentUser.id && (
+              <TouchableOpacity style={styles.menuButton} onPress={() => setMenuVisible(prev=>!prev)}>
+                <Icon name="dots-vertical" size={26} color="#fff" />
+              </TouchableOpacity>
+            )}
+
+            {menuVisible && (
+              <View style={styles.dropdownMenu}>
+                <TouchableOpacity
+                  style={styles.dropdownItem}
+                  onPress={async()=>{
+                    setMenuVisible(false);
+                    try{
+                      if(!isBlocked){
+                        await blockUser(user.username);
+                        setIsBlocked(true);
+                        Alert.alert('User Blocked');
+                      }else{
+                        await unblockUser(user.username);
+                        setIsBlocked(false);
+                        Alert.alert('User Unblocked');
+                      }
+                    }catch{Alert.alert('Error','Action failed');}
+                  }}
+                >
+                  <View style={{flexDirection:'row',alignItems:'center'}}>
+                    <Icon name={isBlocked ? 'check' : 'block-helper'} size={16} color="#000" style={{marginRight:6}} />
+                    <Text style={styles.dropdownText}>{isBlocked ? 'Unblock' : 'Block'}</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
+
             <View style={styles.avatarContainer}>
               <Image source={{ uri: user.profileImage }} style={styles.avatar} />
             </View>
@@ -608,5 +645,28 @@ const styles = StyleSheet.create({
     zIndex: 10,
     width: 150,
     alignItems: 'center',
+  },
+  menuButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    padding: 6,
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    backgroundColor: '#00f2ff',
+    borderRadius: 6,
+    paddingVertical: 4,
+    zIndex: 1000,
+  },
+  dropdownItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  dropdownText: {
+    color: '#000',
+    fontSize: 14,
   },
 });

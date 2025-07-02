@@ -1,14 +1,16 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, Image, ScrollView, Animated, Easing, DeviceEventEmitter } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, Image, ScrollView, Animated, Easing, DeviceEventEmitter, Modal, Alert } from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
 import { getCategories } from '../../api/category';
 import { getFeedFollowing, getFeedForYou } from '../../api/feed';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { TapGestureHandler, PanGestureHandler, State } from 'react-native-gesture-handler';
-import { starPost, unstarPost } from '../../api/post';
+import { starPost, unstarPost, reportPost } from '../../api/post';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import UserProfileScreen from '../Profile/UserProfileScreen';
 import { useFocusEffect } from '@react-navigation/native';
+import { TextInput, Button } from 'react-native-paper';
+import { blockUser, unblockUser } from '../../api/user';
 
 const { width } = Dimensions.get('window');
 
@@ -76,6 +78,10 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
   const [forcePaused, setForcePaused] = useState(false);
   const videoRef = useRef<VideoRef>(null);
   const animation = useRef(new Animated.Value(0)).current;
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [reason, setReason] = useState('');
+  const [isBlocked, setIsBlocked] = useState(false);
 
   const triggerStarAnimation = () => {
     setStarAnimating(true);
@@ -119,7 +125,7 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
   // Only play video if this post is focused and the current media is a video and not forcePaused and shouldPlayVideo
   const currentMedia = post.media?.[currentIndex];
   // videoShouldPlay is kept for logic, but we want to use paused={!shouldPlayVideo || idx !== currentIndex}
-  const videoShouldPlay = shouldPlayVideo && isFocused && currentMedia?.type === 'video' && !forcePaused;
+  // const videoShouldPlay = shouldPlayVideo && isFocused && currentMedia?.type === 'video' && !forcePaused;
 
   useEffect(() => {
     // If not focused, reset video to start
@@ -138,6 +144,7 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
   });
 
   return (
+    <>
     <View style={styles.postCard}>
       {/* User Row */}
       <View style={styles.postHeader}>
@@ -148,6 +155,26 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
           <Text style={styles.username}>{post.user.username}</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
+        <TouchableOpacity style={styles.menuButton} onPress={() => setDropdownVisible(prev => !prev)}>
+          <Icon name="dots-vertical" size={24} color="#fff" />
+        </TouchableOpacity>
+        {dropdownVisible && (
+          <View style={styles.dropdownMenu}>
+            <TouchableOpacity
+              style={styles.dropdownItem}
+              onPress={() => {
+                setDropdownVisible(false);
+                setReportModalVisible(true);
+              }}
+            >
+            <View style={{flexDirection:'row',alignItems:'center'}}>
+                <Icon name={isBlocked ? 'check' : 'report'} size={14} color="#000" style={{marginRight:6}} />
+                <Text style={styles.dropdownText}>{isBlocked ? 'Unblock' : 'Block'}</Text>
+              </View>
+              <Text style={styles.dropdownText}>Report</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
       {/* Image/Video Slider with Double Tap */}
       <TapGestureHandler numberOfTaps={2} onActivated={handleDoubleTap}>
@@ -246,6 +273,58 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
         </TouchableOpacity>
       </View>
     </View>
+    {/* Report Modal (moved inside Fragment) */}
+    <Modal
+      visible={reportModalVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setReportModalVisible(false)}
+    >
+      <View style={styles.modalBack}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity onPress={() => setReportModalVisible(false)} style={styles.modalClose}>
+            <Icon name="close" size={26} color="#00f2ff" />
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>Report</Text>
+          <TextInput
+            mode="outlined"
+            label="Reason"
+            placeholder="Why are you reporting this?"
+            value={reason}
+            onChangeText={setReason}
+            multiline
+            style={styles.reasonInput}
+            placeholderTextColor="#888"
+            textColor="#ffffff"
+            outlineColor="#ffffff"
+            activeOutlineColor="#ffffff"
+          />
+          <Button
+            mode="contained"
+            buttonColor="#00f2ff"
+            style={{ marginTop: 12 }}
+            labelStyle={{ color: '#000' }}
+            onPress={async () => {
+              if (!reason.trim()) {
+                Alert.alert('Error', 'Please enter a reason.');
+                return;
+              }
+              try {
+                await reportPost(post.id, reason.trim());
+                Alert.alert('Reported', 'Thank you for your feedback.');
+                setReportModalVisible(false);
+                setReason('');
+              } catch {
+                Alert.alert('Error', 'Failed to submit report.');
+              }
+            }}
+          >
+            Submit
+          </Button>
+        </View>
+      </View>
+    </Modal>
+    </>
   );
 }
 
@@ -670,5 +749,55 @@ const styles = StyleSheet.create({
     backgroundColor: '#23233a',
     marginHorizontal: 16,
     marginBottom: 12,
+  },
+  menuButton: {
+    padding: 8,
+    marginLeft: 12,
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 55,
+    right: 16,
+    backgroundColor: '#00f2ff',
+    borderRadius: 6,
+    elevation: 4,
+    paddingVertical: 4,
+    zIndex: 1000,
+  },
+  dropdownItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  dropdownText: {
+    color: '#000',
+    fontSize: 14,
+  },
+  modalBack: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#101018',
+    borderRadius: 12,
+    padding: 20,
+    width: '90%',
+  },
+  modalClose: {
+    alignSelf: 'flex-end',
+    padding: 4,
+  },
+  modalTitle: {
+    color: 'red',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  reasonInput: {
+    backgroundColor: '#161616',
+    color: '#fff',
+    marginBottom: 8,
   },
 });

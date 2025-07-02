@@ -4,7 +4,6 @@ import { TextInput, Button, Text, Divider } from 'react-native-paper';
 import { useDispatch } from 'react-redux';
 import { login } from '../../redux/authSlice';
 import { login as loginApi } from '../../api/auth';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function Login({ navigation }: any) {
   const [email, setEmail] = useState('');
@@ -14,13 +13,15 @@ export default function Login({ navigation }: any) {
   const dispatch = useDispatch();
 
   const handleLogin = async () => {
+    console.log('Login button pressed');
     try {
       setError('');
       setLoading(true);
       const response = await loginApi(email, password);
+      console.log('Login response:', response);
       dispatch(login(response));
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to login. Please try again.');
+      setError(err.response?.data?.message || 'Username or password is incorrect.');
     } finally {
       setLoading(false);
     }

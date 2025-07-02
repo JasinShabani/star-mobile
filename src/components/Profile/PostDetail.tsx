@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Video from 'react-native-video';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated, Easing, DeviceEventEmitter, Modal } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated, Easing, DeviceEventEmitter, Modal, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getPostById, starPost, unstarPost } from '../../api/post';
+import { getPostById, starPost, unstarPost, reportPost } from '../../api/post';
+import { TextInput, Button } from 'react-native-paper';
 import { useNavigation as useNav, useRoute as useRt, useFocusEffect } from '@react-navigation/native';
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -22,6 +23,9 @@ export default function PostDetail({ route, navigation }: any) {
   const animation = useRef(new Animated.Value(0)).current;
   const videoRefs = useRef<any>({});
   const [rankModalVisible, setRankModalVisible] = useState(false);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [reason, setReason] = useState('');
 
   const openUserProfile = () => {
     // Navigate to nested stack: Tab "Profile" → Screen "UserProfile"
@@ -152,6 +156,25 @@ export default function PostDetail({ route, navigation }: any) {
             >
               <Text style={styles.trophyEmoji}>🏆 Trophies</Text>
             </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            onPress={() => setDropdownVisible(v => !v)}
+            style={styles.menuButton}
+          >
+            <Icon name="dots-vertical" size={24} color="#fff" />
+          </TouchableOpacity>
+          {dropdownVisible && (
+            <View style={styles.dropdownMenu}>
+              <TouchableOpacity
+                onPress={() => {
+                  setDropdownVisible(false);
+                  setReportModalVisible(true);
+                }}
+                style={styles.dropdownItem}
+              >
+                <Text style={styles.dropdownText}>Report</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
 
@@ -298,6 +321,59 @@ export default function PostDetail({ route, navigation }: any) {
           </View>
         </Modal>
       </ScrollView>
+      {/* Report Modal */}
+      <Modal
+        visible={reportModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setReportModalVisible(false)}
+      >
+        <View style={[styles.modalBack, { justifyContent: 'center', alignItems: 'center' }]}>
+          <View style={[styles.reportModalContent, { marginVertical: '20%', alignSelf: 'center', width: '80%' }]}>
+            <TouchableOpacity onPress={() => setReportModalVisible(false)} style={styles.modalClose}>
+              <Icon name="close" size={26} color="#00f2ff" />
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: 'red' }]}>Report</Text>
+            <View style={{ padding: 16 }}>
+              <TextInput
+                mode="outlined"
+                label="Reason"
+                placeholder="Why are you reporting this?"
+                value={reason}
+                onChangeText={setReason}
+                multiline
+                style={styles.reasonInput}
+                placeholderTextColor="#888"
+                textColor="#ffffff"
+                outlineColor="#ffffff"
+                activeOutlineColor="#ffffff"
+              />
+              <Button
+                mode="contained"
+                buttonColor="#00f2ff"
+                labelStyle={{ color: '#000' }}
+                onPress={async () => {
+                  if (!reason.trim()) {
+                    Alert.alert('Error', 'Please enter a reason.');
+                    return;
+                  }
+                  try {
+                    await reportPost(post.id, reason.trim());
+                    Alert.alert('Reported', 'Thank you for your feedback.');
+                    setReportModalVisible(false);
+                    setReason('');
+                  } catch {
+                    Alert.alert('Error', 'Failed to submit report.');
+                  }
+                }}
+                style={{ marginTop: 12 }}
+              >
+                Submit
+              </Button>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </GestureHandlerRootView>
   );
 }
@@ -558,5 +634,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 10,
+  },
+  menuButton: {
+    padding: 8,
+    marginLeft: 12,
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 140,
+    right: 16,
+    backgroundColor: '#00f2ff',
+    borderRadius: 6,
+    elevation: 4,
+    paddingVertical: 4,
+    zIndex: 1000,
+  },
+  dropdownItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  dropdownText: {
+    color: '#000',
+    fontSize: 14,
+  },
+  reportModalContent: {
+    backgroundColor: '#101018',
+    marginTop: '20%',
+    marginHorizontal: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  reasonInput: {
+    backgroundColor: '#161616',
+    color: '#fff',
+    marginBottom: 16,
   },
 });

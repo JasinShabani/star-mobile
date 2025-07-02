@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { updateProfile } from '../../api/user';
+import { updateProfile, deleteAccount } from '../../api/user';
 import { COUNTRIES, CITIES } from '../../constants/geo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../redux/authSlice';
 
 export default function EditProfile() {
   const navigation = useNavigation<any>();
@@ -15,11 +18,14 @@ export default function EditProfile() {
   const [firstName, setFirstName] = useState(user.firstName || '');
   const [lastName, setLastName] = useState(user.lastName || '');
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [openCountry, setOpenCountry] = useState(false);
   const [openCity, setOpenCity] = useState(false);
   const [countryItems, setCountryItems] = useState(COUNTRIES);
   const [cityItems, setCityItems] = useState(CITIES[initialCountry].map(c => ({ label: c, value: c })));
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     setCityItems(CITIES[country].map(c => ({ label: c, value: c })));
@@ -37,6 +43,39 @@ export default function EditProfile() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to permanently delete your account? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setDeleting(true);
+              await deleteAccount();
+              await AsyncStorage.removeItem('auth_token');
+              dispatch(logout());
+              Alert.alert('Account deleted', 'Your account has been removed.');
+              // Navigate to auth or landing screen after deletion
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Auth' as never }],
+              });
+            } catch (e) {
+              Alert.alert('Error', 'Failed to delete account.');
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (
@@ -94,6 +133,16 @@ export default function EditProfile() {
         </View>
         <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading} activeOpacity={0.85}>
           <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={handleDelete}
+          disabled={deleting}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.deleteButtonText}>
+            {deleting ? 'Deleting...' : 'Delete Account'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -180,6 +229,26 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#101018',
+    fontWeight: 'bold',
+    fontSize: 19,
+    letterSpacing: 1.1,
+  },
+
+  deleteButton: {
+    backgroundColor: '#ff3b30',
+    borderRadius: 14,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 16,
+    shadowColor: '#ff3b30',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+
+  deleteButtonText: {
+    color: '#fff',
     fontWeight: 'bold',
     fontSize: 19,
     letterSpacing: 1.1,

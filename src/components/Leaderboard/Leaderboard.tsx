@@ -109,6 +109,7 @@ export default function Leaderboard() {
   const [showShare, setShowShare] = useState(false);
   const viewShotRef = useRef<any>(null);
   const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [showNoticeModal, setShowNoticeModal] = useState(false);
 
   // Group posts by rank (1‑10) for "Me" summary
   const rankGroups = React.useMemo(() => {
@@ -323,7 +324,9 @@ export default function Leaderboard() {
                     </View>
                   )}
                 </View>
-                <Text style={{color:'#fff',textAlign:'center',marginTop:10,fontSize:18}}>I am ranked {myEntry.rank}{myEntry.rank===1?'st':myEntry.rank===2?'nd':myEntry.rank===3?'rd':'th'} in {level.charAt(0).toUpperCase()+level.slice(1)} {level!=='global'?`(${myEntry.level=== 'country'?country:city})`:''}!</Text>
+                <Text style={{color:'#fff',textAlign:'center',marginTop:10,fontSize:18}}>
+                  I am ranked {myEntry.rank}{myEntry.rank===1?'st':myEntry.rank===2?'nd':myEntry.rank===3?'rd':'th'} in {level==='global'?'Global':level==='country'?(COUNTRIES.find(c=>c.value===country)?.label ?? country):city}{category ? `\n • ${myEntry.category?.icon ?? ''} ${myEntry.category?.name}` : ''}!
+                </Text>
               </>
             )}
           </View>
@@ -352,75 +355,25 @@ export default function Leaderboard() {
           </TouchableOpacity>
         ))}
       </View>
-      {/* Filters */}
-      <View style={styles.filtersRow}>
-        <View style={{ flex: 1, zIndex: 2000 }}>
-          <DropDownPicker
-            open={openLevel}
-            value={level}
-            items={levelItems}
-            setOpen={(val) => {
-              setOpenLevel(val);
-              if (val) {
-                setOpenCategory(false);
-                setOpenCountry(false);
-                setOpenCity(false);
-              }
-            }}
-            setValue={setLevel}
-            setItems={() => {}}
-            style={styles.dropdown}
-            dropDownContainerStyle={styles.dropdownContainer}
-            textStyle={{ color: '#fff', fontSize: 15 }}
-            arrowIconStyle={{ tintColor: '#fff' }}
-            tickIconStyle={{ tintColor: '#fff' }}
-            listMode="SCROLLVIEW"
-            disabled={loading}
-          />
-        </View>
-        <View style={{ flex: 1, marginLeft: 8, zIndex: openCategory ? 2900 : 1000 }}>
-          <DropDownPicker
-            open={openCategory}
-            value={category}
-            items={categoryItems}
-            setOpen={(val) => {
-              setOpenCategory(val);
-              if (val) {
-                setOpenLevel(false);
-                setOpenCountry(false);
-                setOpenCity(false);
-              }
-            }}
-            setValue={setCategory}
-            setItems={setCategories}
-            placeholder="All Categories"
-            style={styles.dropdown}
-            dropDownContainerStyle={styles.dropdownContainer}
-            textStyle={{ color: '#fff', fontSize: 15 }}
-            arrowIconStyle={{ tintColor: '#fff' }}
-            tickIconStyle={{ tintColor: '#fff' }}
-            listMode="SCROLLVIEW"
-            disabled={loading}
-          />
-        </View>
-      </View>
-      {(level === 'country' || level === 'city') && (
-        <View style={{ flexDirection: 'row', paddingHorizontal: 12}}>
-          {level === 'country' && (
-            <View style={{ flex: 1, zIndex: openCountry ? 2900 : 1000 }}>
+      {/* Filters (hidden on "Me" tab) */}
+      {tab !== 'me' && (
+        <>
+          <View style={styles.filtersRow}>
+            {/* Level & Category dropdowns */}
+            <View style={{ flex: 1, zIndex: 2000 }}>
               <DropDownPicker
-                open={openCountry}
-                value={country}
-                items={countryItems}
+                open={openLevel}
+                value={level}
+                items={levelItems}
                 setOpen={(val) => {
-                  setOpenCountry(val);
+                  setOpenLevel(val);
                   if (val) {
-                    setOpenLevel(false);
                     setOpenCategory(false);
+                    setOpenCountry(false);
                     setOpenCity(false);
                   }
                 }}
-                setValue={setCountry}
+                setValue={setLevel}
                 setItems={() => {}}
                 style={styles.dropdown}
                 dropDownContainerStyle={styles.dropdownContainer}
@@ -431,61 +384,128 @@ export default function Leaderboard() {
                 disabled={loading}
               />
             </View>
+            <View style={{ flex: 1, marginLeft: 8, zIndex: openCategory ? 2900 : 1000 }}>
+              <DropDownPicker
+                open={openCategory}
+                value={category}
+                items={categoryItems}
+                setOpen={(val) => {
+                  setOpenCategory(val);
+                  if (val) {
+                    setOpenLevel(false);
+                    setOpenCountry(false);
+                    setOpenCity(false);
+                  }
+                }}
+                setValue={setCategory}
+                setItems={setCategories}
+                placeholder="All Categories"
+                style={styles.dropdown}
+                dropDownContainerStyle={styles.dropdownContainer}
+                textStyle={{ color: '#fff', fontSize: 15 }}
+                arrowIconStyle={{ tintColor: '#fff' }}
+                tickIconStyle={{ tintColor: '#fff' }}
+                listMode="SCROLLVIEW"
+                disabled={loading}
+              />
+            </View>
+          </View>
+
+          {(level === 'country' || level === 'city') && (
+            <View style={{ flexDirection: 'row', paddingHorizontal: 12}}>
+              {/* Country & City dropdowns */}
+              {level === 'country' && (
+                <View style={{ flex: 1, zIndex: openCountry ? 2900 : 1000 }}>
+                  <DropDownPicker
+                    open={openCountry}
+                    value={country}
+                    items={countryItems}
+                    setOpen={(val) => {
+                      setOpenCountry(val);
+                      if (val) {
+                        setOpenLevel(false);
+                        setOpenCategory(false);
+                        setOpenCity(false);
+                      }
+                    }}
+                    setValue={setCountry}
+                    setItems={() => {}}
+                    style={styles.dropdown}
+                    dropDownContainerStyle={styles.dropdownContainer}
+                    textStyle={{ color: '#fff', fontSize: 15 }}
+                    arrowIconStyle={{ tintColor: '#fff' }}
+                    tickIconStyle={{ tintColor: '#fff' }}
+                    listMode="SCROLLVIEW"
+                    disabled={loading}
+                  />
+                </View>
+              )}
+              {level === 'city' && (
+                <>
+                  <View style={{ flex: 1, zIndex: openCountry ? 2900 : 1000 }}>
+                    <DropDownPicker
+                      open={openCountry}
+                      value={country}
+                      items={countryItems}
+                      setOpen={(val) => {
+                        setOpenCountry(val);
+                        if (val) {
+                          setOpenLevel(false);
+                          setOpenCategory(false);
+                          setOpenCity(false);
+                        }
+                      }}
+                      setValue={setCountry}
+                      setItems={() => {}}
+                      style={styles.dropdown}
+                      dropDownContainerStyle={styles.dropdownContainer}
+                      textStyle={{ color: '#fff', fontSize: 15 }}
+                      arrowIconStyle={{ tintColor: '#fff' }}
+                      tickIconStyle={{ tintColor: '#fff' }}
+                      listMode="SCROLLVIEW"
+                      disabled={loading}
+                    />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 8, zIndex: openCity ? 2800 : 999 }}>
+                    <DropDownPicker
+                      open={openCity}
+                      value={city}
+                      items={cityItems}
+                      setOpen={(val) => {
+                        setOpenCity(val);
+                        if (val) {
+                          setOpenLevel(false);
+                          setOpenCategory(false);
+                          setOpenCountry(false);
+                        }
+                      }}
+                      setValue={setCity}
+                      setItems={() => {}}
+                      style={styles.dropdown}
+                      dropDownContainerStyle={styles.dropdownContainer}
+                      textStyle={{ color: '#fff', fontSize: 15 }}
+                      arrowIconStyle={{ tintColor: '#fff' }}
+                      tickIconStyle={{ tintColor: '#fff' }}
+                      listMode="SCROLLVIEW"
+                      disabled={loading}
+                    />
+                  </View>
+                </>
+              )}
+            </View>
           )}
-          {level === 'city' && (
-            <>
-              <View style={{ flex: 1, zIndex: openCountry ? 2900 : 1000 }}>
-                <DropDownPicker
-                  open={openCountry}
-                  value={country}
-                  items={countryItems}
-                  setOpen={(val) => {
-                    setOpenCountry(val);
-                    if (val) {
-                      setOpenLevel(false);
-                      setOpenCategory(false);
-                      setOpenCity(false);
-                    }
-                  }}
-                  setValue={setCountry}
-                  setItems={() => {}}
-                  style={styles.dropdown}
-                  dropDownContainerStyle={styles.dropdownContainer}
-                  textStyle={{ color: '#fff', fontSize: 15 }}
-                  arrowIconStyle={{ tintColor: '#fff' }}
-                  tickIconStyle={{ tintColor: '#fff' }}
-                  listMode="SCROLLVIEW"
-                  disabled={loading}
-                />
-              </View>
-              <View style={{ flex: 1, marginLeft: 8, zIndex: openCity ? 2800 : 999 }}>
-                <DropDownPicker
-                  open={openCity}
-                  value={city}
-                  items={cityItems}
-                  setOpen={(val) => {
-                    setOpenCity(val);
-                    if (val) {
-                      setOpenLevel(false);
-                      setOpenCategory(false);
-                      setOpenCountry(false);
-                    }
-                  }}
-                  setValue={setCity}
-                  setItems={() => {}}
-                  style={styles.dropdown}
-                  dropDownContainerStyle={styles.dropdownContainer}
-                  textStyle={{ color: '#fff', fontSize: 15 }}
-                  arrowIconStyle={{ tintColor: '#fff' }}
-                  tickIconStyle={{ tintColor: '#fff' }}
-                  listMode="SCROLLVIEW"
-                  disabled={loading}
-                />
-              </View>
-            </>
-          )}
-        </View>
+        </>
       )}
+      {/* Refresh notice */}
+      <TouchableOpacity
+        style={styles.refreshNotice}
+        activeOpacity={0.8}
+        onPress={() => setShowNoticeModal(true)}
+      >
+        <Text style={styles.refreshText}>
+          Leaderboard refreshes every <Text style={styles.refreshHighlight}>Sunday at 19:00</Text>
+        </Text>
+      </TouchableOpacity>
       {/* Top 3 Users Section (handles ties) */}
       {tab !== 'me' && (
         <View style={styles.topThreeContainer}>
@@ -560,7 +580,7 @@ export default function Leaderboard() {
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={styles.username}>{entry.user.username}</Text>
                     <Text style={styles.levelCat}>{entry.level.charAt(0).toUpperCase() + entry.level.slice(1)}{entry.category ? ` • ${entry.category.name}` : ''}</Text>
-                    <Text style={styles.starCount}>⭐ {entry.post.starCount}</Text>
+                    <Text style={styles.starCount}>🌟 {entry.post.starCount}</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
                       <Text style={styles.trophy}>{idx + 3 === 0 ? '🥇' : idx + 3 === 1 ? '🥈' : idx + 3 === 2 ? '🥉' : '🏅'}</Text>
                       <Text style={[styles.place, idx + 3 < 3 && styles.placeTop]}>{getPlaceText(entry.rank)}</Text>
@@ -647,6 +667,34 @@ export default function Leaderboard() {
               </ScrollView>
             </View>
           </View>
+        </Modal>
+      )}
+
+      {/* Notice info modal */}
+      {showNoticeModal && (
+        <Modal
+          visible
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowNoticeModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.noticeModalBack}
+            activeOpacity={1}
+            onPress={() => setShowNoticeModal(false)}
+          >
+            <View style={styles.noticeModalContent}>
+              <Text style={styles.noticeModalText}>
+                What you share during the week is counted until Sunday 19:00.{'\n'}Keep posting and become a Star! ✨
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowNoticeModal(false)}
+                style={styles.noticeModalClose}
+              >
+                <Icon name="close" size={24} color="#00f2ff" />
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
         </Modal>
       )}
 
@@ -997,5 +1045,44 @@ const styles = StyleSheet.create({
     color: '#101018',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  refreshNotice: {
+    backgroundColor: '#00f2ff',
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginHorizontal: 18,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  refreshText: {
+    color: '#000',
+    fontSize: 12,
+  },
+  refreshHighlight: {
+    fontWeight: 'bold',
+  },
+  noticeModalBack: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noticeModalContent: {
+    width: '90%',
+    backgroundColor: '#181828',
+    borderRadius: 18,
+    padding: 20,
+    position: 'relative',
+  },
+  noticeModalText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  noticeModalClose: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
   },
 });
