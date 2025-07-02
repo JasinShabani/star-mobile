@@ -167,10 +167,6 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
                 setReportModalVisible(true);
               }}
             >
-            <View style={{flexDirection:'row',alignItems:'center'}}>
-                <Icon name={isBlocked ? 'check' : 'report'} size={14} color="#000" style={{marginRight:6}} />
-                <Text style={styles.dropdownText}>{isBlocked ? 'Unblock' : 'Block'}</Text>
-              </View>
               <Text style={styles.dropdownText}>Report</Text>
             </TouchableOpacity>
           </View>
