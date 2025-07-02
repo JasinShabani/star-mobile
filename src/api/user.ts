@@ -60,3 +60,18 @@ export const getFollowing = async () => {
   const res = await api.get('/user/following');
   return res.data;
 };
+
+export const deleteAccount = async () => {
+  await api.delete('/user/delete-account');
+};
+
+// Block / Unblock helpers
+export const blockUser = async (targetUserIdOrUsername: string) => {
+  const res = await api.post(`/user/${targetUserIdOrUsername}/block`);
+  return res.data;
+};
+
+export const unblockUser = async (targetUserIdOrUsername: string) => {
+  const res = await api.post(`/user/${targetUserIdOrUsername}/unblock`);
+  return res.data;
+};

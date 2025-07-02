@@ -45,3 +45,8 @@ export const getPostsByUsername = async (username: string, page = 1, pageSize = 
   const res = await api.get(`/post/user/${username}`, { params: { page, pageSize } });
   return res.data.posts;
 };
+
+export const reportPost = async (postId: string, reason: string) => {
+  const response = await api.post(`/post/${postId}/report`, { reason });
+  return response.data;
+};
