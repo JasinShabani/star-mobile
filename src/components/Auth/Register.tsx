@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Platform, Image, TouchableOpacity, Modal, Pressable, ScrollView } from 'react-native';
+import { View, StyleSheet, Platform, Image, TouchableOpacity, Modal, Pressable, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { TextInput, Button, Text, Divider } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDispatch } from 'react-redux';
@@ -63,6 +63,7 @@ export default function Register({ navigation }: any) {
   };
 
   return (
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
     <View style={styles.container}>
       <Image source={{ uri: 'https://yasinsaban.com/star/star-logo-transparent-black.png' }} style={styles.brandLogo} />
 
@@ -215,7 +216,7 @@ export default function Register({ navigation }: any) {
             <Text style={styles.modalTitle}>Terms & Conditions</Text>
             <Text style={styles.modalDate}>Last updated: July 2, 2025</Text>
             <Text style={styles.modalText}>
-              Welcome to Star! By tapping “I Agree” you accept these Terms & Conditions and our Privacy Policy. Please read them carefully.
+              Welcome to Star! By tapping "I Agree" you accept these Terms & Conditions and our Privacy Policy. Please read them carefully.
             </Text>
             <Text style={styles.modalText}>
               1. About Star{"\n"}
@@ -233,7 +234,7 @@ export default function Register({ navigation }: any) {
             </Text>
             <Text style={styles.modalText}>
               4. Moderation & Reporting{"\n"}
-              • You can flag any post or comment by tapping the “Report” icon.{"\n"}
+              • You can flag any post or comment by tapping the "Report" icon.{"\n"}
               • You can block other users—blocked users cannot view or interact with your content.{"\n"}
               • We review all reports within 24 hours and remove violating content; repeat offenders may be suspended or banned.
             </Text>
@@ -246,7 +247,7 @@ export default function Register({ navigation }: any) {
               6. Community Rules{"\n"}
               • Be respectful—no hate, threats, or defamation.{"\n"}
               • No spam, self-promotion, or commercial advertising without permission.{"\n"}
-              • No sharing of private information (yours or others’).
+              • No sharing of private information (yours or others').
             </Text>
             <Text style={styles.modalText}>
               7. Intellectual Property{"\n"}
@@ -255,13 +256,13 @@ export default function Register({ navigation }: any) {
             </Text>
             <Text style={styles.modalText}>
               8. Disclaimers & Liability{"\n"}
-              • Star is provided “as is.” We disclaim all warranties, express or implied.{"\n"}
+              • Star is provided "as is." We disclaim all warranties, express or implied.{"\n"}
               • We are not responsible for content posted by users.{"\n"}
-              • Our maximum liability is limited to the amount you’ve paid (if any) in the past 12 months.
+              • Our maximum liability is limited to the amount you've paid (if any) in the past 12 months.
             </Text>
             <Text style={styles.modalText}>
               9. Changes to These Terms{"\n"}
-              • We may update these Terms. If the changes are material, we’ll notify you in-app. Continued use after notice means you accept the new Terms.
+              • We may update these Terms. If the changes are material, we'll notify you in-app. Continued use after notice means you accept the new Terms.
             </Text>
             <Text style={styles.modalText}>
               10. Governing Law & Contact{"\n"}
@@ -272,6 +273,7 @@ export default function Register({ navigation }: any) {
         </View>
       </Modal>
     </View>
+    </TouchableWithoutFeedback>
   );
 }
 
