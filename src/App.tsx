@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PersistGate } from 'redux-persist/integration/react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Keyboard } from 'react-native';
 
 import RootNavigator from './navigation/RootNavigator';
 import { store, persistor } from './redux/store';
@@ -16,7 +17,7 @@ export default function App() {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <SafeAreaProvider>
-            <NavigationContainer>
+            <NavigationContainer onStateChange={() => Keyboard.dismiss()}>
               <RootNavigator />
             </NavigationContainer>
           </SafeAreaProvider>

@@ -29,6 +29,7 @@ export default function SearchScreen() {
   const [selectedUsername, setSelectedUsername] = useState<string | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(true);
+  const [defaultAccounts, setDefaultAccounts] = useState<any[]>([]);
 
   // Load history from AsyncStorage
   useEffect(() => {
@@ -40,6 +41,18 @@ export default function SearchScreen() {
         } catch {
           setHistory([]);
         }
+      }
+    })();
+  }, []);
+
+  // Load default accounts with empty query
+  useEffect(() => {
+    (async () => {
+      try {
+        const users = await searchUsers('');
+        setDefaultAccounts(users);
+      } catch {
+        // ignore
       }
     })();
   }, []);
@@ -136,35 +149,67 @@ export default function SearchScreen() {
           </TouchableOpacity>
         )}
       </View>
-      {showHistory && history.length > 0 && (
-        <View style={styles.historyWrap}>
-          <View style={styles.historyHeader}>
-            <Text style={styles.historyTitle}>Recent</Text>
-            <TouchableOpacity onPress={handleClearHistory}>
-              <Text style={styles.clearHistory}>Clear history</Text>
-            </TouchableOpacity>
+      {showHistory ? (
+        <View style={{ flex: 1, flexDirection: 'column' }}>
+          {/* History (top half) */}
+          <View style={{ flex: 0.53 }}>
+            {history.length > 0 && (
+              <View style={styles.historyWrap}>
+                <View style={styles.historyHeader}>
+                  <Text style={styles.historyTitle}>Recent</Text>
+                  <TouchableOpacity onPress={handleClearHistory}>
+                    <Text style={styles.clearHistory}>Clear history</Text>
+                  </TouchableOpacity>
+                </View>
+                <FlatList
+                  data={history}
+                  keyExtractor={item => item.id}
+                  renderItem={({ item }) => (
+                    <UserRow user={item} onPress={() => handleUserPress(item)} />
+                  )}
+                  contentContainerStyle={{ paddingHorizontal: 0 }}
+                  showsVerticalScrollIndicator={false}
+                />
+              </View>
+            )}
           </View>
-          {history.map((user) => (
-            <UserRow key={user.id} user={user} onPress={() => handleUserPress(user)} />
-          ))}
+          {/* Recommended (bottom half) */}
+          <View style={{ flex: 0.47 }}>
+            <Text style={styles.recommendedTitle}>Recommended Users</Text>
+            {loading && <ActivityIndicator color="#00f2ff" style={{ marginTop: 20 }} />}
+            <FlatList
+              data={defaultAccounts}
+              numColumns={2}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.accountCard}
+                  onPress={() => handleUserPress(item)}
+                  activeOpacity={0.8}
+                >
+                  <Image source={{ uri: item.profileImage }} style={styles.cardAvatar} />
+                  <Text style={styles.cardUsername}>{item.username}</Text>
+                </TouchableOpacity>
+              )}
+              contentContainerStyle={{ padding: 10 }}
+              showsVerticalScrollIndicator={false}
+            />
+          </View>
         </View>
-      )}
-      {loading && <ActivityIndicator color="#00f2ff" style={{ marginTop: 20 }} />}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      {!showHistory && (
+      ) : (
+        // Search results full screen when query is non-empty
         <FlatList
+          style={{ flex: 1 }}
           data={results}
           keyExtractor={item => item.id}
           renderItem={({ item }) => (
-            <UserRow
-              user={item}
-              onPress={() => handleUserPress(item)}
-            />
+            <UserRow user={item} onPress={() => handleUserPress(item)} />
           )}
-          style={styles.resultsList}
-          contentContainerStyle={{ paddingBottom: 40 }}
-          ListEmptyComponent={!loading && query ? <Text style={styles.empty}>No users found</Text> : null}
+          contentContainerStyle={{ paddingVertical: 10 }}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            !loading && query ? <Text style={styles.empty}>No users found</Text> : null
+          }
         />
       )}
     </View>
@@ -286,5 +331,32 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
     marginLeft: 12,
+  },
+  accountCard: {
+    flex: 1,
+    backgroundColor: '#181828',
+    borderRadius: 12,
+    margin: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  cardAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginBottom: 8,
+  },
+  cardUsername: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  recommendedTitle: {
+    color: '#aaa',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginHorizontal: 22,
+    marginVertical: 10,
+    marginTop: 50,
   },
 });

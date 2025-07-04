@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Platform, Image } from 'react-native';
+import { View, StyleSheet, Platform, Image, TouchableWithoutFeedback } from 'react-native';
 import { TextInput, Button, Text, Divider } from 'react-native-paper';
 import { useDispatch } from 'react-redux';
 import { login } from '../../redux/authSlice';
 import { login as loginApi } from '../../api/auth';
+import { Keyboard } from 'react-native';
 
 export default function Login({ navigation }: any) {
   const [email, setEmail] = useState('');
@@ -28,6 +29,7 @@ export default function Login({ navigation }: any) {
   };
 
   return (
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
     <View style={styles.container}>
       <Image source={{ uri: 'https://yasinsaban.com/star/star-logo-transparent-black.png' }} style={styles.brandLogo} />
 
@@ -88,6 +90,7 @@ export default function Login({ navigation }: any) {
         Create a new account
       </Button>
     </View>
+    </TouchableWithoutFeedback>
   );
 }
 
