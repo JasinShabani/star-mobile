@@ -28,9 +28,12 @@ export default function EditProfile() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    setCityItems(CITIES[country].map(c => ({ label: c, value: c })));
-    setCity(CITIES[country][0]);
-  }, [country]);
+    const items = CITIES[country].map(c => ({ label: c, value: c }));
+    setCityItems(items);
+    if (!CITIES[country].includes(city)) {
+      setCity(items[0].value);
+    }
+  }, [country, city]);
 
   const handleSave = async () => {
     try {
