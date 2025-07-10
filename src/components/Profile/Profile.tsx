@@ -136,6 +136,8 @@ export default function Profile() {
                 onPress={async () => {
                   await AsyncStorage.removeItem('auth_token');
                   await AsyncStorage.removeItem('search_history_profiles');
+                  const OneSignal = require('react-native-onesignal').default;
+                  OneSignal.removeExternalUserId();
                   dispatch(logout());
                 }}
               />

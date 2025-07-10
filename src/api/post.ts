@@ -4,7 +4,7 @@ export const getMyPosts = async (page = 1, pageSize = 10) => {
   const response = await api.get('/post/my', {
     params: { page, pageSize },
   });
-  console.log("came here", response);
+  console.log("get the post", response);
   return response.data.posts; // Adjust if your backend returns a different structure
 };
 
