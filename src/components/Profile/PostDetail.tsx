@@ -31,7 +31,7 @@ export default function PostDetail({ route, navigation }: any) {
     // Navigate to nested stack: Tab "Profile" → Screen "UserProfile"
     nav.navigate('Profile', {
       screen: 'UserProfile',
-      params: { userId: user?.id },
+      params: { userId: user?.id || post?.user?.id },
     });
   };
 
@@ -127,8 +127,8 @@ export default function PostDetail({ route, navigation }: any) {
     return <View style={styles.center}><Text style={styles.errorText}>Post not found</Text></View>;
   }
 
-  const userAvatar = user?.profileImage || MOCK_AVATAR;
-  const username = user?.username || 'username';
+  const userAvatar = user?.profileImage || post?.user?.profileImage || MOCK_AVATAR;
+  const username = user?.username || post?.user?.username || 'username';
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

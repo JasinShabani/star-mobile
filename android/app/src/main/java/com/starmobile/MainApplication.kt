@@ -1,4 +1,4 @@
-package com.starmobile
+package com.starmobile.jasin
 
 import android.app.Application
 import com.facebook.react.PackageList

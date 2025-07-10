@@ -7,6 +7,7 @@ import { login } from '../../redux/authSlice';
 import { register as registerApi } from '../../api/auth';
 import { COUNTRIES, CITIES } from '../../constants/geo';
 import DropDownPicker from 'react-native-dropdown-picker';
+import OneSignal from 'react-native-onesignal';
 
 export default function Register({ navigation }: any) {
   const [username, setUsername] = useState('');
@@ -55,6 +56,12 @@ export default function Register({ navigation }: any) {
       };
       const response = await registerApi(payload);
       dispatch(login(response));
+      try {
+        const userId = (response as any).user?.id ?? (response as any).id;
+        if (userId) {
+          OneSignal.setExternalUserId(String(userId));
+        }
+      } catch {}
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to register. Please try again.');
     } finally {

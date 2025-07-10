@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import { login } from '../../redux/authSlice';
 import { login as loginApi } from '../../api/auth';
 import { Keyboard } from 'react-native';
+import OneSignal from 'react-native-onesignal';
 
 export default function Login({ navigation }: any) {
   const [email, setEmail] = useState('');
@@ -21,6 +22,17 @@ export default function Login({ navigation }: any) {
       const response = await loginApi(email, password);
       console.log('Login response:', response);
       dispatch(login(response));
+      // Removed real-time socket notification listener; OneSignal will handle push notifications now.
+      // Set OneSignal external user ID if available
+      try {
+        const userId = (response as any).user?.id ?? (response as any).id;
+        console.log('🔍  User ID →', userId);
+        if (userId) {
+          OneSignal.setExternalUserId(userId);
+        }
+      } catch {
+        // Ignore OneSignal errors in case the SDK isn't fully initialized yet
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Username or password is incorrect.');
     } finally {
