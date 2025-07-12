@@ -5,12 +5,11 @@ import { getCategories } from '../../api/category';
 import { getFeedFollowing, getFeedForYou } from '../../api/feed';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { TapGestureHandler, PanGestureHandler, State } from 'react-native-gesture-handler';
-import { starPost, unstarPost, reportPost } from '../../api/post';
+import { starPost, unstarPost, reportPost, getPostStars } from '../../api/post';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import UserProfileScreen from '../Profile/UserProfileScreen';
 import { useFocusEffect } from '@react-navigation/native';
 import { TextInput, Button } from 'react-native-paper';
-import { blockUser, unblockUser } from '../../api/user';
 
 const { width } = Dimensions.get('window');
 
@@ -80,6 +79,9 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
   const animation = useRef(new Animated.Value(0)).current;
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [starsModalVisible, setStarsModalVisible] = useState(false);
+  const [starredUsers, setStarredUsers] = useState<any[]>([]);
+  const [loadingStars, setLoadingStars] = useState(false);
   const [reason, setReason] = useState('');
   const [isBlocked, setIsBlocked] = useState(false);
 
@@ -99,6 +101,24 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
       await onStar(post);
       triggerStarAnimation();
     }
+  };
+
+  const handleStarLongPress = async () => {
+    try {
+      setLoadingStars(true);
+      setStarsModalVisible(true);
+      const users = await getPostStars(post.id);
+      setStarredUsers(users);
+    } catch (err) {
+      console.log('Failed to fetch starred users:', err);
+    } finally {
+      setLoadingStars(false);
+    }
+  };
+
+  const openStarredUserProfile = (username: string) => {
+    setStarsModalVisible(false);
+    onUserPress(username);
   };
 
   // Manage video play state on navigation focus
@@ -258,6 +278,7 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
         <TouchableOpacity
           style={styles.inlineStarButton}
           onPress={() => onStar(post)}
+          onLongPress={handleStarLongPress}
           activeOpacity={0.7}
         >
           {post.hasStarred ? (
@@ -317,6 +338,48 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
           >
             Submit
           </Button>
+        </View>
+      </View>
+    </Modal>
+    {/* Stars Modal */}
+    <Modal
+      transparent
+      animationType="slide"
+      visible={starsModalVisible}
+      onRequestClose={() => setStarsModalVisible(false)}
+    >
+      <View style={styles.modalBack}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity
+            onPress={() => setStarsModalVisible(false)}
+            style={styles.modalClose}
+          >
+            <Icon name="close" size={26} color="#00f2ff" />
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>🌟 Starred by</Text>
+          
+          {loadingStars ? (
+            <ActivityIndicator color="#00f2ff" style={{ marginTop: 20 }} />
+          ) : (
+            <ScrollView style={{ maxHeight: 400 }}>
+              {starredUsers.map((starUser: any) => (
+                <TouchableOpacity
+                  key={starUser.id}
+                  style={styles.userRow}
+                  activeOpacity={0.8}
+                  onPress={() => openStarredUserProfile(starUser.username)}
+                >
+                  <Image source={{ uri: starUser.profileImage }} style={styles.userAvatar} />
+                  <Text style={styles.userName}>@{starUser.username}</Text>
+                </TouchableOpacity>
+              ))}
+              {starredUsers.length === 0 && !loadingStars && (
+                <Text style={{ color: '#aaa', textAlign: 'center', marginTop: 30 }}>
+                  No stars yet.
+                </Text>
+              )}
+            </ScrollView>
+          )}
         </View>
       </View>
     </Modal>
@@ -795,5 +858,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#161616',
     color: '#fff',
     marginBottom: 8,
+  },
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#23233a',
+  },
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 15,
+    backgroundColor: '#222',
+  },
+  userName: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

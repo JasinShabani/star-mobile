@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Image, TouchableOpacity, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Image, TouchableOpacity, Dimensions, Alert, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getUserByUsername, getMe, followUser, unfollowUser, blockUser, unblockUser } from '../../api/user';
 import { getPostsByUsername } from '../../api/post';
@@ -107,6 +107,8 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
   const [showUnfollowDropdown, setShowUnfollowDropdown] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
+  const [showRestrictionPopup, setShowRestrictionPopup] = useState(false);
+  const [restrictionMessage, setRestrictionMessage] = useState('');
 
   const fetchUserAndPosts = useCallback(async (reset = false, nextPage = 1) => {
     try {
@@ -162,6 +164,16 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
     if (nativeEvent.translationX > 60 && nativeEvent.state === State.END) {
       setSelectedPostId(null);
     }
+  };
+
+  const handleFollowersClick = () => {
+    setRestrictionMessage("You can't view other users' followers");
+    setShowRestrictionPopup(true);
+  };
+
+  const handleFollowingClick = () => {
+    setRestrictionMessage("You can't view other users' following");
+    setShowRestrictionPopup(true);
   };
 
   if (loading) {
@@ -286,24 +298,24 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
               </>
             )}
             <View style={styles.statsRow}>
-              <View style={styles.statCard}>
+              <TouchableOpacity style={styles.statCard} onPress={handleFollowersClick} activeOpacity={0.8}>
                 <View style={styles.statContent}>
                   <Text style={styles.statNumber}>{user.followersCount}</Text>
                   <Text style={styles.statLabel}>Followers</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
               <View style={styles.statCard}>
                 <View style={styles.statContent}>
                   <Text style={styles.statNumber}>{user.totalStars}</Text>
                   <Text style={styles.statEmoji}>🌟</Text>
                 </View>
               </View>
-              <View style={styles.statCard}>
+              <TouchableOpacity style={styles.statCard} onPress={handleFollowingClick} activeOpacity={0.8}>
                 <View style={styles.statContent}>
                   <Text style={styles.statNumber}>{user.followingCount}</Text>
                   <Text style={styles.statLabel}>Following</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             </View>
             <View style={styles.trophiesRow}>
               {getRank('city')?.rank && (
@@ -359,6 +371,26 @@ export default function UserProfileScreen({ username: propUsername }: UserProfil
           </View>
         </PanGestureHandler>
       )}
+      
+      {/* Restriction Popup */}
+      <Modal
+        transparent
+        animationType="fade"
+        visible={showRestrictionPopup}
+        onRequestClose={() => setShowRestrictionPopup(false)}
+      >
+        <View style={styles.popupOverlay}>
+          <View style={styles.popupContent}>
+            <Text style={styles.popupMessage}>{restrictionMessage}</Text>
+            <TouchableOpacity
+              style={styles.popupButton}
+              onPress={() => setShowRestrictionPopup(false)}
+            >
+              <Text style={styles.popupButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -668,5 +700,37 @@ const styles = StyleSheet.create({
   dropdownText: {
     color: '#000',
     fontSize: 14,
+  },
+  popupOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  popupContent: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    alignItems: 'center',
+    width: '80%',
+  },
+  popupMessage: {
+    fontSize: 18,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  popupButton: {
+    backgroundColor: '#00f2ff',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  popupButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });

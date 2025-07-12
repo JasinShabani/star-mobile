@@ -1,20 +1,23 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Video from 'react-native-video';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated, Easing, DeviceEventEmitter, Modal, Alert } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated, Easing, DeviceEventEmitter, Modal, Alert, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getPostById, starPost, unstarPost, reportPost } from '../../api/post';
+import { getPostById, starPost, unstarPost, reportPost, getPostStars } from '../../api/post';
 import { TextInput, Button } from 'react-native-paper';
 import { useNavigation as useNav, useRoute as useRt, useFocusEffect } from '@react-navigation/native';
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import UserProfileScreen from './UserProfileScreen';
 
 const { width } = Dimensions.get('window');
 const AVATAR_SIZE = 36;
 const MOCK_AVATAR = 'https://randomuser.me/api/portraits/men/32.jpg';
 
 export default function PostDetail({ route, navigation }: any) {
-  const nav = navigation || useNav();
-  const rt = route || useRt<any>();
+  const hookNav = useNav();
+  const hookRoute = useRt<any>();
+  const nav = navigation || hookNav;
+  const rt = route || hookRoute;
   const { postId, user, rank, level, country, city } = rt.params;
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -25,14 +28,14 @@ export default function PostDetail({ route, navigation }: any) {
   const [rankModalVisible, setRankModalVisible] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [starsModalVisible, setStarsModalVisible] = useState(false);
+  const [starredUsers, setStarredUsers] = useState<any[]>([]);
+  const [loadingStars, setLoadingStars] = useState(false);
   const [reason, setReason] = useState('');
+  const [selectedUsername, setSelectedUsername] = useState<string | null>(null);
 
   const openUserProfile = () => {
-    // Navigate to nested stack: Tab "Profile" → Screen "UserProfile"
-    nav.navigate('Profile', {
-      screen: 'UserProfile',
-      params: { userId: user?.id || post?.user?.id },
-    });
+    setSelectedUsername(user?.username || post?.user?.username);
   };
 
   useEffect(() => {
@@ -119,6 +122,36 @@ export default function PostDetail({ route, navigation }: any) {
     inputRange: [0, 0.7, 1],
     outputRange: [0, 1, 0],
   });
+
+  const handleStarLongPress = async () => {
+    try {
+      setLoadingStars(true);
+      setStarsModalVisible(true);
+      const users = await getPostStars(post.id);
+      setStarredUsers(users);
+    } catch (err) {
+      console.log('Failed to fetch starred users:', err);
+    } finally {
+      setLoadingStars(false);
+    }
+  };
+
+  const openStarredUserProfile = (username: string) => {
+    setStarsModalVisible(false);
+    setSelectedUsername(username);
+  };
+
+  if (selectedUsername) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#101018' }}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => setSelectedUsername(null)}>
+          <Icon name="arrow-left" size={26} color="#00f2ff" />
+          <Text style={styles.backText}>Back to Post</Text>
+        </TouchableOpacity>
+        <UserProfileScreen username={selectedUsername} />
+      </View>
+    );
+  }
 
   if (loading) {
     return <View style={styles.center}><Text style={styles.loadingText}>Loading...</Text></View>;
@@ -264,6 +297,7 @@ export default function PostDetail({ route, navigation }: any) {
           </Text>
           <TouchableOpacity
             onPress={triggerStar}
+            onLongPress={handleStarLongPress}
             style={styles.inlineStarButton}
             activeOpacity={0.7}
           >
@@ -316,6 +350,49 @@ export default function PostDetail({ route, navigation }: any) {
                   </Text>
                   <Text style={styles.rankLineText}>{`#${post.city_rank} City`}</Text>
                 </View>
+              )}
+            </View>
+          </View>
+        </Modal>
+
+        {/* Stars Modal */}
+        <Modal
+          transparent
+          animationType="slide"
+          visible={starsModalVisible}
+          onRequestClose={() => setStarsModalVisible(false)}
+        >
+          <View style={styles.modalBack}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity
+                onPress={() => setStarsModalVisible(false)}
+                style={styles.modalClose}
+              >
+                <Icon name="close" size={26} color="#00f2ff" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>🌟 Starred by</Text>
+              
+              {loadingStars ? (
+                <ActivityIndicator color="#00f2ff" style={{ marginTop: 20 }} />
+              ) : (
+                <ScrollView style={{ maxHeight: 400 }}>
+                  {starredUsers.map((starUser: any) => (
+                    <TouchableOpacity
+                      key={starUser.id}
+                      style={styles.userRow}
+                      activeOpacity={0.8}
+                      onPress={() => openStarredUserProfile(starUser.username)}
+                    >
+                      <Image source={{ uri: starUser.profileImage }} style={styles.userAvatar} />
+                      <Text style={styles.userName}>@{starUser.username}</Text>
+                    </TouchableOpacity>
+                  ))}
+                  {starredUsers.length === 0 && !loadingStars && (
+                    <Text style={{ color: '#aaa', textAlign: 'center', marginTop: 30 }}>
+                      No stars yet.
+                    </Text>
+                  )}
+                </ScrollView>
               )}
             </View>
           </View>
@@ -668,5 +745,41 @@ const styles = StyleSheet.create({
     backgroundColor: '#161616',
     color: '#fff',
     marginBottom: 16,
+  },
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  userName: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#181828',
+    paddingTop: 50,
+    paddingBottom: 15,
+    borderBottomColor: '#00f2ff',
+    borderBottomWidth: 0.2,
+    paddingLeft: 15,
+    zIndex: 10,
+  },
+  backText: {
+    color: '#00f2ff',
+    fontSize: 16,
+    marginLeft: 5,
   },
 });

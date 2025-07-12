@@ -50,3 +50,8 @@ export const reportPost = async (postId: string, reason: string) => {
   const response = await api.post(`/post/${postId}/report`, { reason });
   return response.data;
 };
+
+export const getPostStars = async (postId: string) => {
+  const response = await api.get(`/post/${postId}/stars`);
+  return response.data;
+};
