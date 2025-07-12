@@ -3,18 +3,18 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		33B505CE3DFC8C6C1E800392 /* libPods-StarMobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A61431A498E503ACDD93BDF2 /* libPods-StarMobile.a */; };
-		5EBD0911A86DCE58DF07E888 /* libPods-OneSignalNotificationServiceExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A557CE02A5481F2ED5D21511 /* libPods-OneSignalNotificationServiceExtension.a */; };
 		601AD14FFDDD9D0B51713381 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		84E60A542E1EC80600EF306D /* OneSignalFramework.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 84E60A532E1EC80600EF306D /* OneSignalFramework.xcframework */; };
 		84E60A632E1F098700EF306D /* OneSignalNotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 84E60A5C2E1F098700EF306D /* OneSignalNotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		966BD5C2C9594E4E574A3267 /* libPods-OneSignalNotificationServiceExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1175C36AA46CABE114A2193D /* libPods-OneSignalNotificationServiceExtension.a */; };
+		E0187A0DFC2A7473A3A2AE89 /* libPods-StarMobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E65CFA2E8A8DDA3713DAFCBA /* libPods-StarMobile.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,26 +52,26 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0502124C15DD18815EB51238 /* Pods-OneSignalNotificationServiceExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OneSignalNotificationServiceExtension.debug.xcconfig"; path = "Target Support Files/Pods-OneSignalNotificationServiceExtension/Pods-OneSignalNotificationServiceExtension.debug.xcconfig"; sourceTree = "<group>"; };
+		1175C36AA46CABE114A2193D /* libPods-OneSignalNotificationServiceExtension.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-OneSignalNotificationServiceExtension.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* StarMobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StarMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = StarMobile/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = StarMobile/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = StarMobile/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		29C7DE9A3325BC2557A63E8D /* Pods-StarMobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StarMobile.debug.xcconfig"; path = "Target Support Files/Pods-StarMobile/Pods-StarMobile.debug.xcconfig"; sourceTree = "<group>"; };
-		34B50FE8D39AE6DE3AAAD7BA /* Pods-OneSignalNotificationServiceExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OneSignalNotificationServiceExtension.release.xcconfig"; path = "Target Support Files/Pods-OneSignalNotificationServiceExtension/Pods-OneSignalNotificationServiceExtension.release.xcconfig"; sourceTree = "<group>"; };
+		3B6290AC66D41D0DC413E660 /* Pods-OneSignalNotificationServiceExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OneSignalNotificationServiceExtension.release.xcconfig"; path = "Target Support Files/Pods-OneSignalNotificationServiceExtension/Pods-OneSignalNotificationServiceExtension.release.xcconfig"; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = StarMobile/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = StarMobile/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		84E60A532E1EC80600EF306D /* OneSignalFramework.xcframework */ = {isa = PBXFileReference; expectedSignature = "AppleDeveloperProgram:J3J28YJX9L:OneSignal, Inc."; lastKnownFileType = wrapper.xcframework; name = OneSignalFramework.xcframework; path = Pods/OneSignalXCFramework/iOS_SDK/OneSignalSDK/OneSignal_XCFramework/OneSignalFramework.xcframework; sourceTree = "<group>"; };
 		84E60A572E1F050A00EF306D /* StarMobile.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = StarMobile.entitlements; path = StarMobile/StarMobile.entitlements; sourceTree = "<group>"; };
 		84E60A5C2E1F098700EF306D /* OneSignalNotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OneSignalNotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		A557CE02A5481F2ED5D21511 /* libPods-OneSignalNotificationServiceExtension.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-OneSignalNotificationServiceExtension.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		A61431A498E503ACDD93BDF2 /* libPods-StarMobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StarMobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		C6DD65BCE678B6303431363E /* Pods-StarMobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StarMobile.release.xcconfig"; path = "Target Support Files/Pods-StarMobile/Pods-StarMobile.release.xcconfig"; sourceTree = "<group>"; };
+		E65CFA2E8A8DDA3713DAFCBA /* libPods-StarMobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-StarMobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		FE71C33C31F4BB9BA67F7BFE /* Pods-OneSignalNotificationServiceExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OneSignalNotificationServiceExtension.debug.xcconfig"; path = "Target Support Files/Pods-OneSignalNotificationServiceExtension/Pods-OneSignalNotificationServiceExtension.debug.xcconfig"; sourceTree = "<group>"; };
+		F6D93190D3AA73F918EE6C92 /* Pods-StarMobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StarMobile.release.xcconfig"; path = "Target Support Files/Pods-StarMobile/Pods-StarMobile.release.xcconfig"; sourceTree = "<group>"; };
+		FD38B9856A5FA044B337DEB8 /* Pods-StarMobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-StarMobile.debug.xcconfig"; path = "Target Support Files/Pods-StarMobile/Pods-StarMobile.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		84E60A642E1F098700EF306D /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		84E60A642E1F098700EF306D /* Exceptions for "OneSignalNotificationServiceExtension" folder in "OneSignalNotificationServiceExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -81,7 +81,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		84E60A5D2E1F098700EF306D /* OneSignalNotificationServiceExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (84E60A642E1F098700EF306D /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = OneSignalNotificationServiceExtension; sourceTree = "<group>"; };
+		84E60A5D2E1F098700EF306D /* OneSignalNotificationServiceExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				84E60A642E1F098700EF306D /* Exceptions for "OneSignalNotificationServiceExtension" folder in "OneSignalNotificationServiceExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = OneSignalNotificationServiceExtension;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,7 +101,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				84E60A542E1EC80600EF306D /* OneSignalFramework.xcframework in Frameworks */,
-				33B505CE3DFC8C6C1E800392 /* libPods-StarMobile.a in Frameworks */,
+				E0187A0DFC2A7473A3A2AE89 /* libPods-StarMobile.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -98,7 +109,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5EBD0911A86DCE58DF07E888 /* libPods-OneSignalNotificationServiceExtension.a in Frameworks */,
+				966BD5C2C9594E4E574A3267 /* libPods-OneSignalNotificationServiceExtension.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -123,8 +134,8 @@
 			children = (
 				84E60A532E1EC80600EF306D /* OneSignalFramework.xcframework */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				A557CE02A5481F2ED5D21511 /* libPods-OneSignalNotificationServiceExtension.a */,
-				A61431A498E503ACDD93BDF2 /* libPods-StarMobile.a */,
+				1175C36AA46CABE114A2193D /* libPods-OneSignalNotificationServiceExtension.a */,
+				E65CFA2E8A8DDA3713DAFCBA /* libPods-StarMobile.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -163,10 +174,10 @@
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				29C7DE9A3325BC2557A63E8D /* Pods-StarMobile.debug.xcconfig */,
-				C6DD65BCE678B6303431363E /* Pods-StarMobile.release.xcconfig */,
-				FE71C33C31F4BB9BA67F7BFE /* Pods-OneSignalNotificationServiceExtension.debug.xcconfig */,
-				34B50FE8D39AE6DE3AAAD7BA /* Pods-OneSignalNotificationServiceExtension.release.xcconfig */,
+				0502124C15DD18815EB51238 /* Pods-OneSignalNotificationServiceExtension.debug.xcconfig */,
+				3B6290AC66D41D0DC413E660 /* Pods-OneSignalNotificationServiceExtension.release.xcconfig */,
+				FD38B9856A5FA044B337DEB8 /* Pods-StarMobile.debug.xcconfig */,
+				F6D93190D3AA73F918EE6C92 /* Pods-StarMobile.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -178,15 +189,15 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "StarMobile" */;
 			buildPhases = (
-				126D48D868D43C25A812CBED /* [CP] Check Pods Manifest.lock */,
+				638A4DCD1269E1E09C6633A8 /* [CP] Check Pods Manifest.lock */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				E172C750EF9B668DFA7480A9 /* [CP] Embed Pods Frameworks */,
-				B621EA07A6927CB0894AEBBE /* [CP] Copy Pods Resources */,
 				84E60A682E1F098700EF306D /* Embed Foundation Extensions */,
 				84E60A562E1EC80600EF306D /* Embed Frameworks */,
+				27F1A157750988CB33936011 /* [CP] Embed Pods Frameworks */,
+				DF97B71E8BD49AFE5F2A24CC /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -202,7 +213,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 84E60A652E1F098700EF306D /* Build configuration list for PBXNativeTarget "OneSignalNotificationServiceExtension" */;
 			buildPhases = (
-				E6537368C93A2F6739005267 /* [CP] Check Pods Manifest.lock */,
+				04F33EC5EA7CE2C5776BD716 /* [CP] Check Pods Manifest.lock */,
 				84E60A582E1F098700EF306D /* Sources */,
 				84E60A592E1F098700EF306D /* Frameworks */,
 				84E60A5A2E1F098700EF306D /* Resources */,
@@ -293,7 +304,46 @@
 			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"$REACT_NATIVE_PATH/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
 			showEnvVarsInLog = 0;
 		};
-		126D48D868D43C25A812CBED /* [CP] Check Pods Manifest.lock */ = {
+		04F33EC5EA7CE2C5776BD716 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-OneSignalNotificationServiceExtension-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		27F1A157750988CB33936011 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-StarMobile/Pods-StarMobile-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-StarMobile/Pods-StarMobile-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StarMobile/Pods-StarMobile-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		638A4DCD1269E1E09C6633A8 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -315,7 +365,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		B621EA07A6927CB0894AEBBE /* [CP] Copy Pods Resources */ = {
+		DF97B71E8BD49AFE5F2A24CC /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -323,60 +373,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-StarMobile/Pods-StarMobile-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-StarMobile/Pods-StarMobile-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
-			outputPaths = (
-			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StarMobile/Pods-StarMobile-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		E172C750EF9B668DFA7480A9 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StarMobile/Pods-StarMobile-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			inputPaths = (
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-StarMobile/Pods-StarMobile-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-StarMobile/Pods-StarMobile-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		E6537368C93A2F6739005267 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-OneSignalNotificationServiceExtension-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -410,12 +413,12 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 29C7DE9A3325BC2557A63E8D /* Pods-StarMobile.debug.xcconfig */;
+			baseConfigurationReference = FD38B9856A5FA044B337DEB8 /* Pods-StarMobile.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = StarMobile/StarMobile.entitlements;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = S9Q3V82T25;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = StarMobile/Info.plist;
@@ -424,7 +427,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -440,12 +443,12 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C6DD65BCE678B6303431363E /* Pods-StarMobile.release.xcconfig */;
+			baseConfigurationReference = F6D93190D3AA73F918EE6C92 /* Pods-StarMobile.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = StarMobile/StarMobile.entitlements;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = S9Q3V82T25;
 				INFOPLIST_FILE = StarMobile/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
@@ -453,7 +456,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -546,7 +549,10 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -626,7 +632,10 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = "$(inherited)  ";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					" ",
+				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
@@ -636,7 +645,7 @@
 		};
 		84E60A662E1F098700EF306D /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = FE71C33C31F4BB9BA67F7BFE /* Pods-OneSignalNotificationServiceExtension.debug.xcconfig */;
+			baseConfigurationReference = 0502124C15DD18815EB51238 /* Pods-OneSignalNotificationServiceExtension.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -679,7 +688,7 @@
 		};
 		84E60A672E1F098700EF306D /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 34B50FE8D39AE6DE3AAAD7BA /* Pods-OneSignalNotificationServiceExtension.release.xcconfig */;
+			baseConfigurationReference = 3B6290AC66D41D0DC413E660 /* Pods-OneSignalNotificationServiceExtension.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
