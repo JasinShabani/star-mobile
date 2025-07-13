@@ -318,9 +318,18 @@ export default function Leaderboard() {
             <Image source={{ uri: 'https://yasinsaban.com/star/star-logo-transparent.png' }} style={{ width: 100, height: 80, alignSelf: 'center', marginBottom: 3 }} />
             <Text style={{color:'#00f2ff', fontSize:24, fontWeight:'bold', textAlign:'center', marginBottom:20}}>🏆 Leaderboard</Text>
             <View style={{flexDirection:'row', justifyContent:'space-around', marginBottom:18}}>
-              {topThree.map((entry:any,index:number)=>(
+              {topThree.map((entry:any,index:number)=> (
                 <View key={entry.id} style={{alignItems:'center'}}>
-                  <Image source={{uri:entry.user.profileImage}} style={{width:70,height:70,borderRadius:35,borderWidth:3,borderColor:'#00f2ff'}} />
+                  {/* Avatar with flag overlay */}
+                  <View style={{ position: 'relative' }}>
+                    <Image source={{uri:entry.user.profileImage}} style={{width:70,height:70,borderRadius:35,borderWidth:3,borderColor:'#00f2ff'}} />
+                    {(() => {
+                      const flag = getFlag(entry.user.country);
+                      return flag ? (
+                        <Text style={{ position: 'absolute', right: -10, top: -6, fontSize: 22 }}>{flag}</Text>
+                      ) : null;
+                    })()}
+                  </View>
                   <Text style={{color:'#fff',marginTop:6}} numberOfLines={1}>@{entry.user.username}</Text>
                   <Text style={{fontSize:20}}>{entry.rank===1?'🥇':entry.rank===2?'🥈':entry.rank===3?'🥉':'🏅'}</Text>
                 </View>
@@ -328,7 +337,7 @@ export default function Leaderboard() {
             </View>
             {myEntry && (
               <>
-                <View style={{width:'100%',height:200,borderRadius:12,overflow:'hidden',position:'relative'}}>
+                <View style={{width:'100%',height:300,borderRadius:12,overflow:'hidden',position:'relative'}}>
                   {previewUri ? (
                     <Image source={{uri: previewUri}} style={{width:'100%',height:'100%'}} />
                   ) : (
@@ -348,12 +357,16 @@ export default function Leaderboard() {
             )}
           </View>
         </ViewShot>
-        <TouchableOpacity style={{position:'absolute', bottom:80, alignSelf:'center', backgroundColor:'#00f2ff', paddingVertical:12, paddingHorizontal:28, borderRadius:24}} onPress={handleShare}>
-          <Text style={{color:'#101018', fontWeight:'bold', fontSize:18}}>Share</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={{position:'absolute', bottom:40, alignSelf:'center'}} onPress={()=>setShowShare(false)}>
-          <Text style={{color:'#fff',fontSize:16}}>Cancel</Text>
-        </TouchableOpacity>
+        {/* Bottom action buttons */}
+        <View style={{position:'absolute', bottom:40, left:0, right:0, flexDirection:'row', justifyContent:'center'}}>
+          <TouchableOpacity onPress={()=>setShowShare(false)} style={{borderWidth:2, borderColor:'#00f2ff', paddingVertical:12, paddingHorizontal:28, borderRadius:24, marginHorizontal: 10}}>
+            <Text style={{color:'#fff',fontSize:15}}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{backgroundColor:'#00f2ff', paddingVertical:12, paddingHorizontal:28, borderRadius:24, marginHorizontal: 10, flexDirection:'row', alignItems:'center'}} onPress={handleShare}>
+            <Icon name="share-variant" size={19} color="#101018" style={{marginRight: 10}} />
+            <Text style={{color:'#101018', fontWeight:'bold', fontSize:15}}>Share</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </Modal>
   );
@@ -429,10 +442,10 @@ export default function Leaderboard() {
           </View>
 
           {(level === 'country' || level === 'city') && (
-            <View style={{ flexDirection: 'row', paddingHorizontal: 12}}>
+            <View style={{ flexDirection: 'row', paddingHorizontal: 12, zIndex: 2500 }}>
               {/* Country & City dropdowns */}
               {level === 'country' && (
-                <View style={{ flex: 1, zIndex: openCountry ? 2900 : 1000 }}>
+                <View style={{ flex: 1, zIndex: openCountry ? 3100 : 1000 }}>
                   <DropDownPicker
                     open={openCountry}
                     value={country}
@@ -459,7 +472,7 @@ export default function Leaderboard() {
               )}
               {level === 'city' && (
                 <>
-                  <View style={{ flex: 1, zIndex: openCountry ? 2900 : 1000 }}>
+                  <View style={{ flex: 1, zIndex: openCountry ? 3100 : 1000 }}>
                     <DropDownPicker
                       open={openCountry}
                       value={country}
@@ -732,7 +745,7 @@ export default function Leaderboard() {
           onPress={openShareModal}
           activeOpacity={0.85}
         >
-          <Icon name="share-variant" size={20} color="#101018" />
+          <Icon name="share-variant" size={20} color="#181828" />
           <Text style={styles.shareBtnFixedText}>  Share My Rank</Text>
         </TouchableOpacity>
       )}
@@ -796,6 +809,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
     fontSize: 25,
+    zIndex: 4000,
   },
   list: {
     flex: 1,
@@ -1054,23 +1068,25 @@ const styles = StyleSheet.create({
   },
   shareBtnFixed: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 45,
     alignSelf: 'center',
     flexDirection: 'row',
     backgroundColor: '#00f2ff',
     paddingVertical: 12,
-    paddingHorizontal: 28,
+    paddingHorizontal: 18,
     borderRadius: 28,
     zIndex: 999,
     shadowColor: '#00f2ff',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.4,
     shadowRadius: 6,
     elevation: 6,
+    borderColor: '#fff',
+    borderWidth: 4,
   },
   shareBtnFixedText: {
-    color: '#101018',
-    fontSize: 18,
+    color: '#181828',
+    fontSize: 16,
     fontWeight: 'bold',
   },
   refreshNotice: {

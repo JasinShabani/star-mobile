@@ -69,7 +69,7 @@ export default function TabNavigator() {
           borderTopWidth: 0,
           height: 80,
           marginBottom: 6,
-          paddingTop: 2,
+          paddingTop: 3,
         },
         tabBarLabelStyle: {
           fontWeight: 'bold',
@@ -117,11 +117,11 @@ export default function TabNavigator() {
                   shadowColor: '#FFD700',
                   shadowOffset: { width: 0, height: 0 },
                   shadowOpacity: isFocused ? 1 : 0.8,
-                  shadowRadius: isFocused ? 15 : 10,
+                  shadowRadius: isFocused ? 18 : 14,
                   elevation: isFocused ? 7 : 5,
                 }}
               >
-                <Icon name={iconName} color={isFocused ? '#3b6265' : '#181828'} size={36} />
+                <Icon name={iconName} color={isFocused ? '#3b7565' : '#181828'} size={36} />
               </View>
             );
           }
