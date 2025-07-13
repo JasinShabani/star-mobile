@@ -4,7 +4,7 @@ import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getPostById, starPost, unstarPost, reportPost, getPostStars } from '../../api/post';
 import { TextInput, Button } from 'react-native-paper';
-import { useNavigation as useNav, useRoute as useRt, useFocusEffect } from '@react-navigation/native';
+import { useNavigation as useNav, useRoute as useRt, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { TapGestureHandler } from 'react-native-gesture-handler';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import UserProfileScreen from './UserProfileScreen';
@@ -18,7 +18,8 @@ export default function PostDetail({ route, navigation }: any) {
   const hookRoute = useRt<any>();
   const nav = navigation || hookNav;
   const rt = route || hookRoute;
-  const { postId, user, rank, level, country, city } = rt.params;
+  const { postId, user, country, city } = rt.params;
+  const screenIsFocused = useIsFocused();
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -33,6 +34,12 @@ export default function PostDetail({ route, navigation }: any) {
   const [loadingStars, setLoadingStars] = useState(false);
   const [reason, setReason] = useState('');
   const [selectedUsername, setSelectedUsername] = useState<string | null>(null);
+  const [muteAll, setMuteAll] = useState<boolean>((global as any).__VIDEO_MUTED__ ?? true);
+  const toggleMute = () => setMuteAll(m => !m);
+
+  useEffect(() => {
+    (global as any).__VIDEO_MUTED__ = muteAll;
+  }, [muteAll]);
 
   const openUserProfile = () => {
     setSelectedUsername(user?.username || post?.user?.username);
@@ -245,12 +252,20 @@ export default function PostDetail({ route, navigation }: any) {
                           source={{ uri: media.url }}
                           style={StyleSheet.absoluteFill}
                           resizeMode="cover"
-                          controls
+                          controls={false} // Disable native controls
                           poster={media.thumbnailUrl}
                           posterResizeMode="cover"
                           repeat
-                          paused={currentIndex !== idx}
+                          paused={!screenIsFocused || currentIndex !== idx}
+                          muted={muteAll}
                         />
+                        {/* Mute Toggle Button */}
+                        <TouchableOpacity
+                          style={styles.muteButton}
+                          onPress={toggleMute}
+                        >
+                          <Icon name={muteAll ? 'volume-off' : 'volume-high'} size={22} color="#fff" />
+                        </TouchableOpacity>
                       </TouchableOpacity>
                     </View>
                   ) : (
@@ -663,6 +678,15 @@ const styles = StyleSheet.create({
   trophyEmoji: {
     color: 'white',
     fontSize: 15,
+  },
+  muteButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 5,
+    zIndex: 10,
   },
   /* Modal styles */
   modalBack: {

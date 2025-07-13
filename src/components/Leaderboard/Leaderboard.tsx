@@ -35,6 +35,14 @@ function getPlaceText(rank: number) {
 
 const crownColors = ['#FFD700', '#C0C0C0', '#CD7F32']; // gold, silver, bronze
 
+function getFlag(countryName: string | undefined): string | null {
+  if (!countryName) return null;
+  const entry = COUNTRIES.find((c) => c.value === countryName);
+  if (!entry) return null;
+  const flag = entry.label.split(' ')[0];
+  return flag;
+}
+
 function TopUser({ user, rank }: { user: any; rank: number }) {
   const crownColorsMap = ['#FFD700', '#C0C0C0', '#CD7F32'];
   const sizeMap = { 1: 100, 2: 80, 3: 70 };
@@ -46,7 +54,16 @@ function TopUser({ user, rank }: { user: any; rank: number }) {
   return (
     <View style={[styles.topUserContainer, { width: avatarSize + 20, marginTop: verticalOffset }]}>
       <Icon name="crown" size={36} color={crownColorsMap[rank - 1]} style={styles.crownIcon} />
-      <Image source={{ uri: user.user.profileImage }} style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2, borderWidth: 3, borderColor: '#fff', marginBottom: 6 }} />
+      <View style={{ position: 'relative' }}>
+        <Image source={{ uri: user.user.profileImage }} style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2, borderWidth: 3, borderColor: '#fff', marginBottom: 6 }} />
+        {/* Country flag overlay */}
+        {(() => {
+          const flag = getFlag(user.user.country);
+          return flag ? (
+            <Text style={{ position: 'absolute', right: -15, top: -6, fontSize: 29 }}>{flag}</Text>
+          ) : null;
+        })()}
+      </View>
       <Text style={styles.topUserName}>{user.user.username}</Text>
       <Text style={styles.starCount}>🌟 {user.post.starCount}</Text>
       <Text style={styles.topUserScore}>{user.rank}</Text>
@@ -576,7 +593,17 @@ export default function Leaderboard() {
                     })
                   }
                 >
-                  <Image source={{ uri: entry.user.profileImage }} style={styles.avatar} />
+                  {/* Avatar with optional country flag overlay */}
+                  <View style={{ position: 'relative' }}>
+                    <Image source={{ uri: entry.user.profileImage }} style={styles.avatar} />
+                    {(() => {
+                      // Show flag overlay for ranks 4-10 (same logic used for top 3)
+                      const flag = getFlag(entry.user.country);
+                      return flag && entry.rank <= 10 ? (
+                        <Text style={{ position: 'absolute', right: -8, top: -8, fontSize: 20 }}>{flag}</Text>
+                      ) : null;
+                    })()}
+                  </View>
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={styles.username}>{entry.user.username}</Text>
                     <Text style={styles.levelCat}>{entry.level.charAt(0).toUpperCase() + entry.level.slice(1)}{entry.category ? ` • ${entry.category.name}` : ''}</Text>

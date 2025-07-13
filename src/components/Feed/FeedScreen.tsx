@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, Image, ScrollView, Animated, Easing, DeviceEventEmitter, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, Image, ScrollView, Animated, Easing, Modal, Alert } from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
 import { getCategories } from '../../api/category';
 import { getFeedFollowing, getFeedForYou } from '../../api/feed';
@@ -8,7 +8,7 @@ import { TapGestureHandler, PanGestureHandler, State } from 'react-native-gestur
 import { starPost, unstarPost, reportPost, getPostStars } from '../../api/post';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import UserProfileScreen from '../Profile/UserProfileScreen';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { TextInput, Button } from 'react-native-paper';
 
 const { width } = Dimensions.get('window');
@@ -69,12 +69,9 @@ interface Post {
   caption: string;
 }
 
-function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar: (post: Post) => void; onUserPress: (username: string) => void; isFocused: boolean }) {
+function PostCard({ post, onStar, onUserPress, isFocused, muteAll, onToggleMute }: { post: Post; onStar: (post: Post) => void; onUserPress: (username: string) => void; isFocused: boolean; muteAll: boolean; onToggleMute: () => void }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [starAnimating, setStarAnimating] = useState(false);
-  // Video play state for navigation focus
-  const [shouldPlayVideo, setShouldPlayVideo] = useState(true);
-  const [forcePaused, setForcePaused] = useState(false);
   const videoRef = useRef<VideoRef>(null);
   const animation = useRef(new Animated.Value(0)).current;
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -83,7 +80,10 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
   const [starredUsers, setStarredUsers] = useState<any[]>([]);
   const [loadingStars, setLoadingStars] = useState(false);
   const [reason, setReason] = useState('');
-  const [isBlocked, setIsBlocked] = useState(false);
+  /* const [isBlocked, setIsBlocked] = useState(false); */
+
+  // Track if the parent screen is focused (to pause videos when navigating away)
+  const screenIsFocused = useIsFocused();
 
   const triggerStarAnimation = () => {
     setStarAnimating(true);
@@ -121,31 +121,16 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
     onUserPress(username);
   };
 
-  // Manage video play state on navigation focus
+  // Pause video when the post loses focus
   useFocusEffect(
     useCallback(() => {
-      setShouldPlayVideo(true);
-      return () => setShouldPlayVideo(false);
-    }, [])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      // When Feed is focused, do nothing special
       return () => {
-        // When Feed loses focus (tab change), pause and reset video
-        setForcePaused(true);
         if (videoRef.current) {
           videoRef.current.seek(0);
         }
       };
     }, [])
   );
-
-  // Only play video if this post is focused and the current media is a video and not forcePaused and shouldPlayVideo
-  const currentMedia = post.media?.[currentIndex];
-  // videoShouldPlay is kept for logic, but we want to use paused={!shouldPlayVideo || idx !== currentIndex}
-  // const videoShouldPlay = shouldPlayVideo && isFocused && currentMedia?.type === 'video' && !forcePaused;
 
   useEffect(() => {
     // If not focused, reset video to start
@@ -215,23 +200,24 @@ function PostCard({ post, onStar, onUserPress, isFocused }: { post: Post; onStar
               // - shouldPlayVideo is true
               // - not forcePaused
               // Use useIsFocused() directly for navigation focus
-              const { useIsFocused } = require('@react-navigation/native');
-              const screenIsFocused = useIsFocused ? useIsFocused() : true;
-              const playThisVideo = screenIsFocused && isFocused && shouldPlayVideo && idx === currentIndex && !forcePaused;
               return media.type === 'video' ? (
-                <Video
-                  key={media.id}
-                  ref={idx === currentIndex ? videoRef : undefined}
-                  source={{ uri: media.url }}
-                  style={styles.postImage}
-                  resizeMode="cover"
-                  repeat
-                  paused={!screenIsFocused || !isFocused || idx !== currentIndex}
-                  muted={false}
-                  playInBackground={false}
-                  playWhenInactive={false}
-                  controls
-                />
+                <View key={media.id} style={{ position: 'relative' }}>
+                  <Video
+                    ref={idx === currentIndex ? videoRef : undefined}
+                    source={{ uri: media.url }}
+                    style={styles.videoPost}
+                    resizeMode="cover"
+                    repeat
+                    paused={!screenIsFocused || !isFocused || idx !== currentIndex}
+                    muted={muteAll}
+                    playInBackground={false}
+                    playWhenInactive={false}
+                    controls={false}
+                  />
+                  <TouchableOpacity style={styles.muteBtn} onPress={onToggleMute}>
+                    <Icon name={muteAll ? 'volume-off' : 'volume-high'} size={18} color="#fff" />
+                  </TouchableOpacity>
+                </View>
               ) : (
                 <Image
                   key={media.id}
@@ -399,6 +385,19 @@ export default function FeedScreen() {
   const [error, setError] = useState('');
   const [hasMore, setHasMore] = useState(true);
   const [selectedUsername, setSelectedUsername] = useState<string | null>(null);
+  const [muteAll, setMuteAll] = useState<boolean>(true);
+  const toggleMuteAll = () => {
+    setMuteAll((m) => {
+      const next = !m;
+      (global as any).__VIDEO_MUTED__ = next;
+      return next;
+    });
+  };
+
+  // initialise global variable once
+  useEffect(() => {
+    (global as any).__VIDEO_MUTED__ = muteAll;
+  }, [muteAll]);
   // Track which posts are visible (focused) for video play/mute logic
   const [visiblePostIds, setVisiblePostIds] = useState<string[]>([]);
   const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
@@ -431,13 +430,13 @@ export default function FeedScreen() {
       } else {
         data = await getFeedForYou(nextPage, 10, selectedCategory || undefined);
       }
-      const uniqueData = Array.from(new Map(data.map(post => [post.id, post])).values());
+      const uniqueData = Array.from(new Map((data as Post[]).map((post: Post) => [post.id, post])).values());
       if (reset) {
         setPosts(uniqueData);
       } else {
-        setPosts(prev => {
-          const seen = new Set(prev.map(p => p.id));
-          const newPosts = uniqueData.filter(p => !seen.has(p.id));
+        setPosts((prev: Post[]) => {
+          const seen = new Set(prev.map((p: Post) => p.id));
+          const newPosts = uniqueData.filter((p: Post) => !seen.has(p.id));
           return [...prev, ...newPosts];
         });
       }
@@ -523,12 +522,14 @@ export default function FeedScreen() {
         <FlatList
           data={posts}
           keyExtractor={item => item.id.toString()}
-          renderItem={({ item, index }) => (
+          renderItem={({ item, index: _index }) => (
             <PostCard
               post={item}
               onStar={handleStar}
               onUserPress={handleUserPress}
               isFocused={visiblePostIds.includes(item.id)}
+              muteAll={muteAll}
+              onToggleMute={toggleMuteAll}
             />
           )}
           style={styles.feedList}
@@ -683,7 +684,7 @@ const styles = StyleSheet.create({
   },
   videoPost: {
     width: width,
-    height: 450,
+    height: 570,
     borderRadius: 16,
     backgroundColor: '#222',
   },
@@ -764,10 +765,12 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   caption: {
+    flex: 1,
     color: '#fff',
     fontSize: 14,
     marginTop: 2,
     textAlign: 'left',
+    flexWrap: 'wrap',
   },
   captionUsername: {
     fontWeight: 'bold',
@@ -848,7 +851,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalTitle: {
-    color: 'red',
+    color: '#00f2ff',
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -878,5 +881,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  muteBtn: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderRadius: 18,
+    padding: 6,
+    zIndex: 20,
   },
 });
