@@ -400,6 +400,9 @@ export default function FeedScreen() {
   }, [muteAll]);
   // Track which posts are visible (focused) for video play/mute logic
   const [visiblePostIds, setVisiblePostIds] = useState<string[]>([]);
+  // Ref to control FlatList scrolling
+  const flatListRef = useRef<FlatList<any>>(null);
+
   const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
     setVisiblePostIds(viewableItems.map((item: any) => item.item.id));
   }).current;
@@ -450,9 +453,14 @@ export default function FeedScreen() {
     }
   }, [tab, selectedCategory]);
 
+  // Whenever tab or category changes, reset page, fetch posts, and scroll to top
   useEffect(() => {
     setPage(1);
     fetchPosts(true, 1);
+    // Scroll FlatList to top
+    if (flatListRef.current) {
+      flatListRef.current.scrollToOffset({ offset: 0, animated: false });
+    }
   }, [tab, selectedCategory, fetchPosts]);
 
   const handleLoadMore = () => {
@@ -520,6 +528,7 @@ export default function FeedScreen() {
         {loading && <ActivityIndicator color="#00f2ff" size="large" style={{ marginTop: 40 }} />}
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <FlatList
+          ref={flatListRef}
           data={posts}
           keyExtractor={item => item.id.toString()}
           renderItem={({ item, index: _index }) => (
