@@ -67,6 +67,7 @@ interface Post {
   hasStarred: boolean;
   starCount: number;
   caption: string;
+  createdAt?: string;
 }
 
 function PostCard({ post, onStar, onUserPress, isFocused, muteAll, onToggleMute }: { post: Post; onStar: (post: Post) => void; onUserPress: (username: string) => void; isFocused: boolean; muteAll: boolean; onToggleMute: () => void }) {
@@ -139,6 +140,36 @@ function PostCard({ post, onStar, onUserPress, isFocused, muteAll, onToggleMute 
     }
   }, [isFocused]);
 
+  const timeAgoLabel = React.useMemo(() => {
+    if (!post.createdAt) return '';
+    const created = new Date(post.createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - created.getTime();
+    const minuteMs = 60 * 1000;
+    const hourMs = 60 * minuteMs;
+    const dayMs = 24 * hourMs;
+
+    if (diffMs < hourMs) {
+      const mins = Math.max(1, Math.floor(diffMs / minuteMs));
+      return `${mins} minute${mins === 1 ? '' : 's'} ago`;
+    }
+
+    if (diffMs < dayMs) {
+      return '1 day ago';
+    }
+
+    const days = Math.floor(diffMs / dayMs);
+    if (days <= 3) {
+      return `${days} day${days === 1 ? '' : 's'} ago`;
+    }
+
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    if (created.getFullYear() === now.getFullYear()) {
+      return `${created.getDate()} ${months[created.getMonth()]}`;
+    }
+    return `${created.getDate()} ${months[created.getMonth()]} ${created.getFullYear()}`;
+  }, [post.createdAt]);
+
   const starScale = animation.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [0.2, 1.3, 1],
@@ -158,6 +189,7 @@ function PostCard({ post, onStar, onUserPress, isFocused, muteAll, onToggleMute 
         </TouchableOpacity>
         <TouchableOpacity onPress={() => onUserPress(post.user.username)}>
           <Text style={styles.username}>{post.user.username}</Text>
+          {timeAgoLabel ? <Text style={styles.postedTime}>{timeAgoLabel}</Text> : null}
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
         <TouchableOpacity style={styles.menuButton} onPress={() => setDropdownVisible(prev => !prev)}>
@@ -677,6 +709,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  postedTime: {
+    color: '#aaa',
+    fontSize: 11,
+    marginTop: 1,
   },
   slider: {
     width: '100%',

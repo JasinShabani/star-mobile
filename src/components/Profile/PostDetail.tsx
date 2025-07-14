@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import Video from 'react-native-video';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Animated, Easing, DeviceEventEmitter, Modal, Alert, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -44,12 +44,6 @@ export default function PostDetail({ route, navigation }: any) {
   const openUserProfile = () => {
     setSelectedUsername(user?.username || post?.user?.username);
   };
-
-  useEffect(() => {
-    console.log('User from route params:', user);
-    console.log('Country from route params:', country);
-    console.log('City from route params:', city);
-  }, [user, country, city]);
 
   useEffect(() => {
     (async () => {
@@ -148,6 +142,43 @@ export default function PostDetail({ route, navigation }: any) {
     setSelectedUsername(username);
   };
 
+  // Helper to format createdAt values
+  const formatTimeAgo = (iso: string | undefined): string => {
+    if (!iso) return '';
+    const created = new Date(iso);
+    const now = new Date();
+    const diffMs = now.getTime() - created.getTime();
+    const minuteMs = 60 * 1000;
+    const hourMs = 60 * minuteMs;
+    const dayMs = 24 * hourMs;
+
+    if (diffMs < hourMs) {
+      const mins = Math.max(1, Math.floor(diffMs / minuteMs));
+      return `${mins} minute${mins === 1 ? '' : 's'} ago`;
+    }
+
+    if (diffMs < dayMs) {
+      return '1 day ago';
+    }
+
+    const days = Math.floor(diffMs / dayMs);
+    if (days <= 3) {
+      return `${days} day${days === 1 ? '' : 's'} ago`;
+    }
+
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
+    ];
+
+    if (created.getFullYear() === now.getFullYear()) {
+      return `${created.getDate()} ${months[created.getMonth()]}`;
+    }
+    return `${created.getDate()} ${months[created.getMonth()]} ${created.getFullYear()}`;
+  };
+
+  const timeAgoLabel = useMemo(() => formatTimeAgo(post?.createdAt), [post?.createdAt]);
+
   if (selectedUsername) {
     return (
       <View style={{ flex: 1, backgroundColor: '#101018' }}>
@@ -186,7 +217,10 @@ export default function PostDetail({ route, navigation }: any) {
             onPress={openUserProfile}
           >
             <Image source={{ uri: userAvatar }} style={styles.avatar} />
-            <Text style={styles.headerUsername}>{username}</Text>
+            <View>
+              <Text style={styles.headerUsername}>{username}</Text>
+              <Text style={styles.timeAgo}>{timeAgoLabel}</Text>
+            </View>
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
           {(post.global_rank !== null || post.country_rank !== null || post.city_rank !== null) && (
@@ -518,7 +552,12 @@ const styles = StyleSheet.create({
   headerUsername: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 17,
+  },
+  timeAgo: {
+    color: '#aaa',
+    fontSize: 12,
+    marginTop: 1,
   },
   slider: {
     width: '100%',
@@ -622,10 +661,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   caption: {
+    flex: 1, // take available space but allow star button to sit right
     color: '#fff',
     fontSize: 14,
     marginTop: 2,
     textAlign: 'left',
+    marginRight: 8,
   },
   captionUsername: {
     fontWeight: 'bold',
@@ -671,13 +712,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   trophyButton: {
-    padding: 10,
-    backgroundColor: '#181828',
+    padding: 8,
+    backgroundColor: '#00f2ff',
     borderRadius: 12,
   },
   trophyEmoji: {
-    color: 'white',
-    fontSize: 15,
+    color: '#181828',
+    fontSize: 13,
   },
   muteButton: {
     position: 'absolute',
