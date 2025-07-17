@@ -523,7 +523,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 44,
+    //apple
+    top: 45,
+    //android
+    //top: 10,
     left: 10,
     zIndex: 10,
     backgroundColor: '#181828',
@@ -538,7 +541,10 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    //apple
     paddingTop: 104,
+    //android
+    //paddingTop: 65,
     paddingBottom: 10,
     paddingHorizontal: 16,
   },
@@ -783,8 +789,8 @@ const styles = StyleSheet.create({
   },
   dropdownMenu: {
     position: 'absolute',
-    top: 140,
-    right: 16,
+    top: 100,
+    right: 56,
     backgroundColor: '#00f2ff',
     borderRadius: 6,
     elevation: 4,

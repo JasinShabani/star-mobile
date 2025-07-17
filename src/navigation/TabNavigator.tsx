@@ -67,8 +67,14 @@ export default function TabNavigator() {
         tabBarStyle: {
           backgroundColor: '#181828',
           borderTopWidth: 0,
+          //apple
           height: 80,
+          //android
+          //height: 57,
+          //apple
           marginBottom: 6,
+          //android
+          //marginBottom: 0,
           paddingTop: 3,
         },
         tabBarLabelStyle: {

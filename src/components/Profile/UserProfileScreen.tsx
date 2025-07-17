@@ -645,6 +645,7 @@ const styles = StyleSheet.create({
   followingWrapper: {
     position: 'relative',
     alignItems: 'center',
+    zIndex: 1000,
   },
   unfollowText: {
     color: '#00f2ff',
@@ -674,7 +675,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    zIndex: 10,
+    zIndex: 9000,
     width: 150,
     alignItems: 'center',
   },

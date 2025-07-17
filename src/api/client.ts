@@ -4,7 +4,7 @@ import type { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axio
 
 const api = axios.create({
   // baseURL: 'http://localhost:8080/api',
-  //baseURL: 'http://192.168.68.76:8080/api',
+  //baseURL: 'http://192.168.68.88:8080/api',
   baseURL: 'https://star-backend-production.up.railway.app/api',
 });
 

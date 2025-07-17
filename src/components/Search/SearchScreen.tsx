@@ -220,7 +220,10 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#101018',
+    //apple
     paddingTop: 18,
+    //android
+    //paddingTop: 0,
     paddingHorizontal: 0,
   },
   searchBarWrap: {
@@ -234,7 +237,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#23233a',
     position: 'relative',
+    //apple
     marginTop: 40,
+    //android
+    //marginTop: 15,
   },
   searchBar: {
     flex: 1,
@@ -300,7 +306,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#181828',
     borderBottomWidth: 1,
     borderBottomColor: '#23233a',
+    //apple
     paddingTop: 52,
+    //android
+    //paddingTop: 15,
   },
   backText: {
     color: '#00f2ff',

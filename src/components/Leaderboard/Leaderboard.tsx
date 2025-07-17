@@ -758,7 +758,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#101018',
+    //apple
     paddingTop: 60,
+    //android
+    //paddingTop: 15,
     paddingHorizontal: 0,
   },
   tabsRow: {

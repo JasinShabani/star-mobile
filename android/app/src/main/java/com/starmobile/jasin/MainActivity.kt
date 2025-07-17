@@ -1,4 +1,4 @@
-package com.starmobile
+package com.starmobile.jasin
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
