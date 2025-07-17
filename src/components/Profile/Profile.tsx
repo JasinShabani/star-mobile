@@ -321,7 +321,10 @@ const styles = StyleSheet.create({
   headerGradient: {
     width: '100%',
     alignItems: 'center',
+    //apple
     paddingTop: 36,
+    //android
+    //paddingTop: 0,
     paddingBottom: 18,
     backgroundColor: '#181828',
     borderBottomLeftRadius: 32,

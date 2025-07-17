@@ -217,7 +217,10 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: 'bold',
     color: '#fff',
+    //apple
     marginTop: 54,
+    //android
+    //marginTop: 10,
     marginBottom: 38,
     textAlign: 'center',
     letterSpacing: 1.1,

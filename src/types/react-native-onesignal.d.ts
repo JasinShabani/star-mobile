@@ -39,7 +39,7 @@ declare module 'react-native-onesignal' {
     removeExternalUserId?(): void; // legacy
 
     // Device state API
-    getDeviceState(): Promise<DeviceState>;
+    getDeviceState?(): Promise<DeviceState>;
 
     // Subscription observer
     addSubscriptionObserver(callback: (state: DeviceState) => void): void;

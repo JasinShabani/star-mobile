@@ -1784,6 +1784,8 @@ PODS:
     - React-Core
   - RNCPicker (2.11.0):
     - React-Core
+  - RNDeviceInfo (14.0.4):
+    - React-Core
   - RNGestureHandler (2.26.0):
     - DoubleConversion
     - glog
@@ -2144,6 +2146,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNImageCropPicker (from `../node_modules/react-native-image-crop-picker`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -2313,6 +2316,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNImageCropPicker:
@@ -2408,6 +2413,7 @@ SPEC CHECKSUMS:
   ReactCommon: 76d2dc87136d0a667678668b86f0fca0c16fdeb0
   RNCAsyncStorage: b44e8a4e798c3e1f56bffccd0f591f674fb9198f
   RNCPicker: 124b4fb5859ba1a3fd53a91e16d1e7a0fc016e59
+  RNDeviceInfo: d863506092aef7e7af3a1c350c913d867d795047
   RNGestureHandler: 5594938ba75e71a47c19c90b300011b7777bce48
   RNImageCropPicker: 10acde29879d67e954eb944f635ed2da42691799
   RNReanimated: 0719175a224f57c0e6bd16e0a420806816bc9b17

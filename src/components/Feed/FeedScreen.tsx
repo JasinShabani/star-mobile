@@ -605,7 +605,10 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#101018',
+    //apple
     paddingTop: 63,
+    //android
+    //paddingTop: 15,
   },
   feedTitle: {
     color: '#fff',
@@ -844,7 +847,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#181828',
     borderBottomWidth: 1,
     borderBottomColor: '#23233a',
+    //apple
     paddingTop: 52,
+    //android
+    //paddingTop: 15,
   },
   backText: {
     color: '#00f2ff',
@@ -864,13 +870,13 @@ const styles = StyleSheet.create({
   },
   dropdownMenu: {
     position: 'absolute',
-    top: 55,
-    right: 16,
+    top: 14,          // align with icon vertically
+    right: 56,        // place to the left of the icon (icon has marginRight ~16 + width ~24)
     backgroundColor: '#00f2ff',
     borderRadius: 6,
     elevation: 4,
     paddingVertical: 4,
-    zIndex: 1000,
+    zIndex: 4000,
   },
   dropdownItem: {
     paddingHorizontal: 12,
